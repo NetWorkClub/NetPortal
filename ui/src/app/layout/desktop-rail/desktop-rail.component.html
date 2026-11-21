@@ -1,0 +1,67 @@
+<aside class="rail">
+  <div class="rail-brand">
+    <div class="brand-mark" aria-hidden="true">
+      <np-icon name="shield" [size]="18" />
+    </div>
+    <div>
+      <div class="brand-name">NetPortal</div>
+      <div class="brand-ver mono">0.1.0</div>
+    </div>
+  </div>
+
+  <nav class="rail-nav" aria-label="Main navigation">
+    <a class="nav-item" routerLink="/home" routerLinkActive="is-active">
+      <np-icon name="home" [size]="17" />
+      <span>{{ 'nav.home' | t }}</span>
+    </a>
+
+    <a class="nav-item" routerLink="/nodes" routerLinkActive="is-active">
+      <np-icon name="nodes" [size]="17" />
+      <span>{{ 'nav.nodes' | t }}</span>
+      <span class="badge tabular nav-badge">{{ store.nodes().length }}</span>
+    </a>
+
+    <a class="nav-item" routerLink="/routing" routerLinkActive="is-active">
+      <np-icon name="routing" [size]="17" />
+      <span>{{ 'nav.routing' | t }}</span>
+      <span class="badge tabular nav-badge">{{ store.activeProfile().rules.length }}</span>
+    </a>
+
+    <a class="nav-item" routerLink="/settings" routerLinkActive="is-active">
+      <np-icon name="settings" [size]="17" />
+      <span>{{ 'nav.settings' | t }}</span>
+      @if (store.conflicts().length > 0) {
+        <span class="badge danger tabular nav-badge">{{ store.conflicts().length }}</span>
+      }
+    </a>
+
+    <a class="nav-item" routerLink="/logs" routerLinkActive="is-active">
+      <np-icon name="logs" [size]="17" />
+      <span>{{ 'nav.logs' | t }}</span>
+    </a>
+
+    <a class="nav-item" routerLink="/about" routerLinkActive="is-active">
+      <np-icon name="about" [size]="17" />
+      <span>{{ 'nav.about' | t }}</span>
+    </a>
+  </nav>
+
+  <div class="rail-footer">
+    <div class="tele-row">
+      <span>{{ 'nav.rx' | t }}</span>
+      <span class="mono tabular">{{ rxText() }}</span>
+    </div>
+    <div class="tele-row">
+      <span>{{ 'nav.tx' | t }}</span>
+      <span class="mono tabular">{{ txText() }}</span>
+    </div>
+    <div class="tele-row">
+      <span>{{ 'nav.session' | t }}</span>
+      <span class="mono tabular">{{ uptimeText() }}</span>
+    </div>
+    <div class="daemon-pill">
+      <span class="daemon-dot"></span>
+      <span class="truncate">{{ (platformSvc.platform() === 'desktop' ? 'nav.daemonDesktop' : 'nav.daemonAndroid') | t }}</span>
+    </div>
+  </div>
+</aside>

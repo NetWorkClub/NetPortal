@@ -1,0 +1,18 @@
+<nav class="bottom-nav" aria-label="Mobile tabs">
+  <a class="bottom-btn" routerLink="/home" routerLinkActive="is-active">
+    <np-icon name="home" [size]="18" />
+    <span>{{ 'nav.home' | t }}</span>
+  </a>
+  <a class="bottom-btn" routerLink="/nodes" routerLinkActive="is-active">
+    <np-icon name="nodes" [size]="18" />
+    <span>{{ 'nav.nodes' | t }}</span>
+  </a>
+  <a class="bottom-btn" routerLink="/routing" routerLinkActive="is-active">
+    <np-icon name="routing" [size]="18" />
+    <span>{{ 'nav.routingShort' | t }}</span>
+  </a>
+  <a class="bottom-btn" routerLink="/settings" routerLinkActive="is-active">
+    <np-icon name="settings" [size]="18" />
+    <span>{{ 'nav.settings' | t }}</span>
+  </a>
+</nav>

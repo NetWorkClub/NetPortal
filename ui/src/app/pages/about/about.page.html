@@ -1,0 +1,37 @@
+<div class="view-header">
+  <div>
+    <h1 class="view-title">{{ 'about.title' | t }}</h1>
+  </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+  <div class="card" style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div
+        style="width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(75,226,184,0.34);"
+      >
+        <np-icon name="shield" [size]="22" />
+      </div>
+      <div>
+        <strong style="font-size: 1.0625rem;">NetPortal</strong>
+        <div class="setting-desc mono">{{ 'about.version' | t }} 0.1.0</div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <button type="button" class="btn btn-secondary btn-sm" (click)="checkUpdates()">{{ 'about.checkUpdates' | t }}</button>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="openDir()">{{ 'about.openDir' | t }}</button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="exportDiagnostics()">{{ 'about.exportDiag' | t }}</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 10px;">{{ 'about.licenseTitle' | t }}</h2>
+    <div class="kv-grid">
+      <div class="kv-cell"><span class="kv-key">Core</span><span class="kv-val">Go 1.25 / amneziawg-go / sing-box</span></div>
+      <div class="kv-cell"><span class="kv-key">UI</span><span class="kv-val">Angular 21 Standalone + Signals</span></div>
+      <div class="kv-cell"><span class="kv-key">Desktop</span><span class="kv-val">Wails v2 (WebKitGTK 4.1 / WebView2)</span></div>
+      <div class="kv-cell"><span class="kv-key">Mobile</span><span class="kv-val">Android VpnService (Rootless)</span></div>
+    </div>
+  </div>
+</div>

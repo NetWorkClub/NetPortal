@@ -1,0 +1,78 @@
+@use 'abstracts/mixins' as *;
+
+.logs-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.logs-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.logs-search {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.logs-select {
+  width: auto;
+  min-width: 140px;
+}
+
+.logs-stream {
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+  max-height: 540px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  @include custom-scrollbar;
+}
+
+.log-line {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  line-height: 1.45;
+}
+
+.log-time {
+  color: var(--text-muted);
+}
+
+.log-lvl {
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.info {
+    color: var(--state-info);
+  }
+
+  &.warn {
+    color: var(--state-warn);
+  }
+
+  &.error {
+    color: var(--state-danger);
+  }
+}
+
+.log-cat {
+  color: var(--accent);
+}
+
+.log-msg {
+  color: var(--text-primary);
+  word-break: break-word;
+}

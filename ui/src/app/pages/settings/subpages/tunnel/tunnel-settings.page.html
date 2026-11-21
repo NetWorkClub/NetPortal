@@ -1,0 +1,133 @@
+<div class="desktop-only" style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+  <a class="btn btn-secondary btn-sm" routerLink="/settings">
+    <np-icon name="back" [size]="15" />
+    <span>{{ 'settings.backToSettings' | t }}</span>
+  </a>
+  <h1 class="view-title">{{ 'settings.catTunnel' | t }}</h1>
+</div>
+
+<div class="card">
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.serviceMode' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.serviceModeDesc' | t }}</p>
+      </div>
+      <div class="setting-control">
+        <select
+          class="select"
+          [ngModel]="store.serviceMode()"
+          (ngModelChange)="store.serviceMode.set($event)"
+        >
+          <option value="vpn">{{ 'settings.modeVpn' | t }}</option>
+          <option value="system-proxy">{{ 'settings.modeSysProxy' | t }}</option>
+          <option value="local-proxy">{{ 'settings.modeLocalProxy' | t }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.tunImpl' | t }}</strong>
+      </div>
+      <div class="setting-control">
+        <select class="select" [ngModel]="tunImpl()" (ngModelChange)="tunImpl.set($event)">
+          <option value="system">System Stack</option>
+          <option value="gvisor">gVisor</option>
+          <option value="mixed">Mixed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.mtuLabel' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.mtuDesc' | t }}</p>
+      </div>
+      <div class="setting-control">
+        <input
+          type="number"
+          min="1200"
+          max="1500"
+          class="input mono tabular"
+          [ngModel]="store.mtu()"
+          (ngModelChange)="store.mtu.set(+$event || 1280)"
+        />
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.strictRoute' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.strictRouteDesc' | t }}</p>
+      </div>
+      <np-toggle-switch
+        [checked]="store.strictRoute()"
+        (toggled)="store.strictRoute.set($event)"
+      />
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.mux' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.muxDesc' | t }}</p>
+      </div>
+      <np-toggle-switch [checked]="store.mux()" (toggled)="store.mux.set($event)" />
+    </div>
+
+    <div class="setting-row android-only">
+      <div class="setting-info">
+        <strong>{{ 'settings.perAppLabel' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.perAppDesc' | t }}</p>
+      </div>
+      <div class="setting-control">
+        <select
+          class="select"
+          [ngModel]="store.perAppMode()"
+          (ngModelChange)="store.perAppMode.set($event)"
+        >
+          <option value="all">{{ 'settings.perAppAll' | t }}</option>
+          <option value="include">{{ 'settings.perAppInc' | t }}</option>
+          <option value="exclude">{{ 'settings.perAppExc' | t }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.proxyPort' | t }}</strong>
+      </div>
+      <div class="setting-control">
+        <input
+          type="number"
+          class="input mono tabular"
+          [ngModel]="proxyPort()"
+          (ngModelChange)="proxyPort.set(+$event || 10808)"
+        />
+      </div>
+    </div>
+
+    <div class="setting-row desktop-only">
+      <div class="setting-info">
+        <strong>{{ 'settings.keepProxy' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.keepProxyDesc' | t }}</p>
+      </div>
+      <np-toggle-switch [checked]="store.keepProxy()" (toggled)="store.keepProxy.set($event)" />
+    </div>
+
+    <div class="setting-row desktop-only">
+      <div class="setting-info">
+        <strong>{{ 'settings.proxyAuth' | t }}</strong>
+      </div>
+      <np-toggle-switch [checked]="store.proxyAuth()" (toggled)="store.proxyAuth.set($event)" />
+    </div>
+
+    <div class="setting-row desktop-only">
+      <div class="setting-info">
+        <strong>{{ 'settings.lanShare' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.lanShareDesc' | t }}</p>
+      </div>
+      <np-toggle-switch [checked]="store.lanShare()" (toggled)="store.lanShare.set($event)" />
+    </div>
+  </div>
+</div>

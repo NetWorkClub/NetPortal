@@ -1,0 +1,34 @@
+.gen-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scanner-box {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scanner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.endpoints-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ep-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

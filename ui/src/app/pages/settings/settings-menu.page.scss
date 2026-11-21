@@ -1,0 +1,32 @@
+.settings-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  transition: background-color var(--t-fast), border-color var(--t-fast);
+
+  &:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+  }
+}
+
+.menu-card-main {
+  min-width: 0;
+  flex: 1;
+
+  strong {
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+}

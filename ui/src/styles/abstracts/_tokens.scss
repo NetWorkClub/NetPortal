@@ -1,0 +1,87 @@
+@mixin light-palette {
+  color-scheme: light;
+  --bg-canvas: #f5f7fa;
+  --bg-surface: #ffffff;
+  --bg-elevated: #eef2f7;
+  --bg-hover: #e4eaf2;
+  --bg-inset: #edf1f6;
+  --border-subtle: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.2);
+
+  --text-primary: #111827;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --accent: #0d8a68;
+  --accent-hover: #0a7256;
+  --accent-soft: rgba(13, 138, 104, 0.12);
+  --accent-fg: #ffffff;
+
+  --state-ok: #15803d;
+  --state-ok-soft: rgba(21, 128, 61, 0.12);
+  --state-warn: #b45309;
+  --state-warn-soft: rgba(180, 83, 9, 0.13);
+  --state-danger: #b91c1c;
+  --state-danger-soft: rgba(185, 28, 28, 0.12);
+  --state-info: #1d4ed8;
+  --state-info-soft: rgba(29, 78, 216, 0.12);
+
+  --shadow-panel: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+:root {
+  color-scheme: dark light;
+
+  --font-sans: "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --bg-canvas: #11161d;
+  --bg-surface: #171d26;
+  --bg-elevated: #1e2632;
+  --bg-hover: #252f3d;
+  --bg-inset: #0d1218;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.17);
+
+  --text-primary: #eef2f6;
+  --text-secondary: #9aa7b8;
+  --text-muted: #6d7b8e;
+
+  --accent: #4be2b8;
+  --accent-hover: #6be8c5;
+  --accent-soft: rgba(75, 226, 184, 0.14);
+  --accent-fg: #07221a;
+
+  --state-ok: #3cd070;
+  --state-ok-soft: rgba(60, 208, 112, 0.14);
+  --state-warn: #f0b44c;
+  --state-warn-soft: rgba(240, 180, 76, 0.15);
+  --state-danger: #f06a6a;
+  --state-danger-soft: rgba(240, 106, 106, 0.15);
+  --state-info: #6ea8fe;
+  --state-info-soft: rgba(110, 168, 254, 0.15);
+
+  --shadow-panel: 0 10px 28px rgba(0, 0, 0, 0.34);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --rail-width: 228px;
+  --t-fast: 140ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  @include light-palette;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    @include light-palette;
+  }
+}

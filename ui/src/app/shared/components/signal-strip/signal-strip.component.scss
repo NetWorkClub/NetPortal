@@ -1,0 +1,61 @@
+.signal-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.signal-hop {
+  padding: 7px 11px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  &.is-active {
+    border-color: rgba(75, 226, 184, 0.42);
+    background: var(--accent-soft);
+  }
+
+  &.is-failover {
+    border-color: rgba(240, 180, 76, 0.45);
+    background: var(--state-warn-soft);
+  }
+
+  &.is-failed {
+    border-color: rgba(240, 106, 106, 0.45);
+    background: var(--state-danger-soft);
+  }
+}
+
+.signal-hop-meta {
+  font-size: 0.725rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.signal-arrow {
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+
+  &.is-active {
+    color: var(--accent);
+  }
+
+  &.is-failover {
+    color: var(--state-warn);
+  }
+}

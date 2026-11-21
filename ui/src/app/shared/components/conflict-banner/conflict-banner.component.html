@@ -1,0 +1,35 @@
+@if (conflicts().length > 0) {
+  @let first = conflicts()[0];
+  <div class="conflict-banner" role="status">
+    <div class="conflict-body">
+      <np-icon name="warning" [size]="18" class="conflict-icon" />
+      <div>
+        <strong>{{ first.title }}</strong>
+        <div class="conflict-detail">{{ first.detail }}</div>
+      </div>
+    </div>
+    <div class="conflict-actions">
+      @for (act of first.actions; track act.action) {
+        <button
+          type="button"
+          class="btn btn-sm"
+          [class.btn-primary]="act.primary"
+          [class.btn-secondary]="!act.primary"
+          (click)="resolved.emit(act.action)"
+        >
+          {{ act.label }}
+        </button>
+      }
+    </div>
+  </div>
+} @else if (showClean()) {
+  <div class="conflict-banner is-clean" role="status">
+    <div class="conflict-body">
+      <np-icon name="shield-ok" [size]="18" class="conflict-icon" />
+      <div>
+        <strong>{{ 'settings.conflictsNone' | t }}</strong>
+        <div class="conflict-detail">{{ 'settings.conflictsNoneDesc' | t }}</div>
+      </div>
+    </div>
+  </div>
+}

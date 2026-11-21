@@ -1,0 +1,29 @@
+<div class="card tester-card">
+  <div class="card-head">
+    <h2 class="card-title">{{ 'routing.testerTitle' | t }}</h2>
+    <span class="badge accent">{{ 'routing.testerBadge' | t }}</span>
+  </div>
+
+  <div class="tester-input-row">
+    <input
+      type="text"
+      class="input mono"
+      [ngModel]="query()"
+      (ngModelChange)="query.set($event)"
+      [placeholder]="'routing.testerPlaceholder' | t"
+      data-testid="rule-tester-input"
+    />
+    <button type="button" class="btn btn-secondary btn-sm" (click)="pickQuickQuery(query())" data-testid="rule-tester-run-btn">
+      {{ 'routing.testerRun' | t }}
+    </button>
+  </div>
+
+  <div class="chip-picker" style="margin: 10px 0;">
+    <button type="button" class="chip-toggle" (click)="pickQuickQuery('claude.ai')">claude.ai</button>
+    <button type="button" class="chip-toggle" (click)="pickQuickQuery('youtube.com')">youtube.com</button>
+    <button type="button" class="chip-toggle" (click)="pickQuickQuery(processChipQuery())">{{ processChipQuery() }}</button>
+    <button type="button" class="chip-toggle" (click)="pickQuickQuery('192.168.1.50')">192.168.1.50</button>
+  </div>
+
+  <np-signal-strip [hops]="resultHops()" />
+</div>

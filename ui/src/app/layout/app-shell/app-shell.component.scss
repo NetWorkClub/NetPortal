@@ -1,0 +1,40 @@
+@use 'abstracts/mixins' as *;
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+
+  @include mobile-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.workspace-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 20px 24px 28px;
+  @include custom-scrollbar;
+
+  @include mobile-only {
+    padding: 14px 14px calc(76px + env(safe-area-inset-bottom, 0));
+  }
+}
+
+.main-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  min-width: 0;
+}

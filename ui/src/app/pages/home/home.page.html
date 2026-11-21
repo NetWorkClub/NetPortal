@@ -1,0 +1,107 @@
+<div class="view-header desktop-only">
+  <div>
+    <h1 class="view-title">{{ 'home.title' | t }}</h1>
+  </div>
+  <button type="button" class="btn btn-secondary btn-sm" (click)="modals.openAdd()" data-testid="home-add-btn">
+    <np-icon name="plus" [size]="15" />
+    <span>{{ 'common.add' | t }}</span>
+  </button>
+</div>
+
+<section class="home-stage">
+  <div class="card target-card">
+    <div class="method-head">
+      <span class="field-label" style="margin: 0;">{{ 'home.methodLabel' | t }}</span>
+      <div class="method-pills" role="group" [attr.aria-label]="'home.methodLabel' | t" data-testid="home-method-pills">
+        @for (tab of methodTabs; track tab.id) {
+          <button
+            type="button"
+            class="pill"
+            [attr.aria-pressed]="store.homeMethod() === tab.id"
+            [attr.data-home-method]="tab.id"
+            (click)="store.setHomeMethod(tab.id)"
+          >
+            {{ tab.key | t }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="target-row">
+      @if (store.homeMethod() === 'novpn') {
+        <select
+          class="select"
+          [ngModel]="store.novpnMode()"
+          (ngModelChange)="onTargetChange($event)"
+          data-testid="home-target-select"
+        >
+          @for (mode of novpnModes(); track mode) {
+            <option [value]="mode">{{ 'home.novpnModes.' + mode | t }}</option>
+          }
+        </select>
+      } @else {
+        <select
+          class="select"
+          [ngModel]="store.selectedNodeId()"
+          (ngModelChange)="onTargetChange($event)"
+          data-testid="home-target-select"
+        >
+          @for (n of store.homeFilteredNodes(); track n.id) {
+            <option [value]="n.id">[{{ n.iso }}] {{ n.name }} ({{ nodePingText(n) }})</option>
+          }
+        </select>
+      }
+
+      <button type="button" class="btn btn-secondary btn-icon" (click)="store.runProbe('url', true)" [attr.aria-label]="'nodes.pingUrl' | t">
+        <np-icon name="bolt" [size]="16" />
+      </button>
+    </div>
+
+    <div class="target-meta">
+      <span>
+        {{ 'home.profilePrefix' | t }}
+        <strong>{{ profileName() }}</strong>
+      </span>
+      @if (store.homeMethod() === 'novpn') {
+        <span class="mono">{{ 'home.standalone' | t }} · {{ 'home.novpnModes.' + store.novpnMode() | t }}</span>
+      } @else {
+        <span class="mono">{{ store.activeNode().proto }} · {{ svcModeLabel() }} · MTU {{ store.activeNode().mtu }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="orb-wrap">
+    <button
+      type="button"
+      class="connect-orb"
+      [class.is-connected]="store.connStatus() === 'connected' && !isFailover()"
+      [class.is-failover]="store.connStatus() === 'connected' && isFailover()"
+      [class.is-connecting]="store.connStatus() === 'connecting'"
+      (click)="store.toggleConnection()"
+      data-testid="home-connect-orb"
+    >
+      <np-icon name="power" [size]="38" />
+    </button>
+    <div class="orb-main">{{ mainCaption() }}</div>
+    <div class="orb-sub mono tabular">{{ subCaption() }}</div>
+  </div>
+
+  <div class="quick-links">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="modals.openQuick()" data-testid="open-quick-btn">
+      <np-icon name="sliders" [size]="15" />
+      <span>{{ 'home.quickSettings' | t }}</span>
+    </button>
+    <a class="btn btn-ghost btn-sm" routerLink="/nodes">
+      <np-icon name="nodes" [size]="15" />
+      <span>{{ 'home.openCatalog' | t }}</span>
+    </a>
+  </div>
+</section>
+
+<div class="home-lower">
+  <np-signal-strip [hops]="signalHops()" />
+  <np-conflict-banner
+    [conflicts]="store.conflicts()"
+    (resolved)="store.resolveConflictAction($event)"
+  />
+</div>

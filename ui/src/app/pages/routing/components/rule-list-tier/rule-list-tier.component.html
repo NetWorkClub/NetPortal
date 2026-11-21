@@ -1,0 +1,93 @@
+<div class="card tier-block">
+  <div class="tier-header">
+    <div>
+      <h2 class="card-title">{{ titleKey() | t }}</h2>
+      @if (hintText()) {
+        <p class="setting-desc">{{ hintText() }}</p>
+      }
+    </div>
+    <span class="badge tabular">Tier {{ tierNumber() }}</span>
+  </div>
+
+  @if (rules().length === 0) {
+    <div class="empty-state">
+      <p>{{ emptyKey() | t }}</p>
+      @if (showCreateButton()) {
+        <button type="button" class="btn btn-primary btn-sm" (click)="createClicked.emit()">
+          {{ 'routing.addFirstRule' | t }}
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="rule-list">
+      @for (r of rules(); track r.id; let i = $index; let count = $count) {
+        <div
+          class="rule-row"
+          [class.is-hit]="store.lastHitRuleId() === r.id"
+          [class.is-disabled]="!r.enabled"
+        >
+          <div class="rule-main">
+            <div class="rule-head">
+              <span class="rule-order">#{{ i + 1 }}</span>
+              <span class="badge" [class]="targetBadgeClass(r.target)">{{ store.getTargetLabel(r.target) }}</span>
+              <strong>{{ r.name }}</strong>
+            </div>
+            <div class="matcher-list">
+              @for (c of matcherChips(r); track $index) {
+                <span
+                  class="matcher-chip"
+                  [class.is-whitelist]="c.tone === 'whitelist'"
+                  [class.is-blacklist]="c.tone === 'blacklist'"
+                  [attr.title]="c.title || null"
+                >
+                  {{ c.text }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="rule-actions">
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon btn-sm"
+              [disabled]="i === 0"
+              (click)="store.moveRuleInTier(r.id, -1)"
+              [attr.aria-label]="'Move up ' + r.name"
+            >
+              <np-icon name="chevron-up" [size]="14" />
+            </button>
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon btn-sm"
+              [disabled]="i === count - 1"
+              (click)="store.moveRuleInTier(r.id, 1)"
+              [attr.aria-label]="'Move down ' + r.name"
+            >
+              <np-icon name="chevron-down" [size]="14" />
+            </button>
+            <a
+              class="btn btn-ghost btn-icon btn-sm"
+              [routerLink]="['/routing/rule', r.id]"
+              [attr.aria-label]="('common.edit' | t) + ' ' + r.name"
+            >
+              <np-icon name="edit" [size]="14" />
+            </a>
+            <np-toggle-switch
+              [checked]="r.enabled"
+              [ariaLabel]="'Toggle ' + r.name"
+              (toggled)="store.toggleRule(r.id)"
+            />
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon btn-sm"
+              (click)="store.deleteRule(r.id)"
+              [attr.aria-label]="('common.delete' | t) + ' ' + r.name"
+            >
+              <np-icon name="trash" [size]="14" />
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

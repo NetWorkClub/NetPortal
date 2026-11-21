@@ -1,0 +1,69 @@
+<div class="view-header">
+  <div>
+    <h1 class="view-title">{{ 'settings.title' | t }}</h1>
+  </div>
+</div>
+
+<div class="settings-menu">
+  <a class="menu-card" routerLink="/settings/general" data-testid="settings-cat-general">
+    <div class="menu-card-main">
+      <strong>{{ 'settings.catGeneral' | t }}</strong>
+      <p class="setting-desc">{{ generalSub() }}</p>
+    </div>
+    <np-icon name="chevron-right" [size]="18" />
+  </a>
+
+  <a class="menu-card" routerLink="/settings/tunnel" data-testid="settings-cat-tunnel">
+    <div class="menu-card-main">
+      <strong>{{ 'settings.catTunnel' | t }}</strong>
+      <p class="setting-desc">{{ tunnelSub() }}</p>
+    </div>
+    <np-icon name="chevron-right" [size]="18" />
+  </a>
+
+  <a class="menu-card" routerLink="/settings/obfuscation" data-testid="settings-cat-obfuscation">
+    <div class="menu-card-main">
+      <strong>{{ 'settings.catObfuscation' | t }}</strong>
+      <p class="setting-desc">{{ obfSub() }}</p>
+    </div>
+    <np-icon name="chevron-right" [size]="18" />
+  </a>
+
+  <a class="menu-card" routerLink="/settings/dns" data-testid="settings-cat-dns">
+    <div class="menu-card-main">
+      <strong>{{ 'settings.catDns' | t }}</strong>
+      <p class="setting-desc">{{ 'settings.catDnsSub' | t }}</p>
+    </div>
+    <np-icon name="chevron-right" [size]="18" />
+  </a>
+
+  <a class="menu-card" routerLink="/settings/conflicts" data-testid="settings-cat-conflicts">
+    <div class="menu-card-main">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <strong>{{ 'settings.catConflicts' | t }}</strong>
+        @let cnt = store.conflicts().length;
+        <span class="badge" [class.danger]="cnt > 0" [class.ok]="cnt === 0">
+          {{ cnt > 0 ? cnt : ('common.clean' | t) }}
+        </span>
+      </div>
+      <p class="setting-desc">{{ 'settings.catConflictsSub' | t }}</p>
+    </div>
+    <np-icon name="chevron-right" [size]="18" />
+  </a>
+
+  <a class="menu-card android-only" routerLink="/logs">
+    <div class="menu-card-main">
+      <strong>{{ 'nav.logs' | t }}</strong>
+      <p class="setting-desc">{{ 'settings.catLogsSub' | t }}</p>
+    </div>
+    <np-icon name="chevron-right" [size]="18" />
+  </a>
+
+  <a class="menu-card android-only" routerLink="/about">
+    <div class="menu-card-main">
+      <strong>{{ 'nav.about' | t }}</strong>
+      <p class="setting-desc">{{ 'settings.catAboutSub' | t }}</p>
+    </div>
+    <np-icon name="chevron-right" [size]="18" />
+  </a>
+</div>

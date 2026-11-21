@@ -1,0 +1,24 @@
+<div class="shell">
+  <np-desktop-rail />
+
+  <div class="workspace-col">
+    <np-mobile-topbar />
+
+    <main #mainWorkspace class="main">
+      <div class="main-inner">
+        <router-outlet />
+      </div>
+    </main>
+
+    <np-mobile-bottomnav />
+  </div>
+
+  <np-add-profile-dialog />
+  <np-generator-dialog />
+  <np-quick-settings-dialog />
+  <np-node-inspector-dialog />
+
+  <div class="toast" role="status" [hidden]="!toast.message()">
+    {{ toast.message() }}
+  </div>
+</div>

@@ -1,0 +1,11 @@
+# NetPortal Cursor Rules
+
+Always follow AGENTS.md at the repository root as the authoritative project specification.
+
+Core constraints:
+1. Zero emojis anywhere (code, UI, SVG icons, commits, docs).
+2. English Conventional Commits only (`feat(scope): ...`, `fix(scope): ...`).
+3. Keep `core/` free of UI/Wails/GTK dependencies and keep `core/mobile/` gomobile-compatible.
+4. Never introduce hidden default split-routing; all splits and fallbacks belong to explicit RoutingProfile rules.
+5. Respect Linux Wayland & WebKitGTK 4.1 rules (`-tags webkit2_41`, `WEBKIT_DISABLE_DMABUF_RENDERER=1`, dark-mode CSS `appearance: none`, BOM-free UTF-8 nftables).
+6. Read matching playbooks in `.agents/skills/<skill>/SKILL.md` before modifying engines, routing, daemon IPC, UI, or CI workflows.

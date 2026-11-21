@@ -1,0 +1,35 @@
+<div class="sources-strip">
+  <button
+    type="button"
+    class="source-item"
+    [attr.aria-pressed]="store.activeSource() === 'all'"
+    (click)="store.activeSource.set('all')"
+  >
+    <div class="source-top">
+      <strong>{{ 'nodes.allSources' | t }}</strong>
+      <span class="badge tabular">{{ store.nodes().length }}</span>
+    </div>
+    <div class="source-meta">
+      <span>{{ 'nodes.localCatalog' | t }}</span>
+      <span>{{ 'nodes.preConnect' | t }}</span>
+    </div>
+  </button>
+
+  @for (src of store.sources(); track src.id) {
+    <button
+      type="button"
+      class="source-item"
+      [attr.aria-pressed]="store.activeSource() === src.id"
+      (click)="store.activeSource.set(src.id)"
+    >
+      <div class="source-top">
+        <strong class="truncate">{{ src.name }}</strong>
+        <span class="badge tabular">{{ countForSource(src.id) }}</span>
+      </div>
+      <div class="source-meta">
+        <span>{{ src.meta }}</span>
+        <span class="mono">{{ quotaText(src.quota, src.quotaKey) }}</span>
+      </div>
+    </button>
+  }
+</div>

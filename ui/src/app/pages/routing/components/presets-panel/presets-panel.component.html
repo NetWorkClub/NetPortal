@@ -1,0 +1,26 @@
+<div class="card" style="margin-bottom: 14px;">
+  <div style="margin-bottom: 12px;">
+    <h2 class="card-title">{{ 'routing.presetsTitle' | t }}</h2>
+    <p class="setting-desc">{{ 'routing.presetsDesc' | t }}</p>
+  </div>
+
+  <div class="preset-list" data-testid="presets-list">
+    @for (p of store.presets; track p.id) {
+      @let active = isEnabled(p);
+      <div class="preset-row" [class.is-enabled]="active" [attr.data-preset-id]="p.id">
+        <div class="preset-info">
+          <div class="preset-head">
+            <strong>{{ p.nameKey | t }}</strong>
+            <span class="badge" [class]="badgeClass(p.target)">{{ store.getTargetLabel(p.target) }}</span>
+          </div>
+          <p class="setting-desc">{{ p.descKey | t }}</p>
+        </div>
+        <np-toggle-switch
+          [checked]="active"
+          [ariaLabel]="p.nameKey | t"
+          (toggled)="store.togglePreset(p)"
+        />
+      </div>
+    }
+  </div>
+</div>

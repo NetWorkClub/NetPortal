@@ -1,0 +1,27 @@
+<div class="desktop-only" style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+  <a class="btn btn-secondary btn-sm" routerLink="/settings">
+    <np-icon name="back" [size]="15" />
+    <span>{{ 'settings.backToSettings' | t }}</span>
+  </a>
+  <h1 class="view-title">{{ 'settings.catConflicts' | t }}</h1>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <h2 class="card-title">{{ 'settings.conflictsDiagTitle' | t }}</h2>
+    <button
+      type="button"
+      class="btn btn-secondary btn-sm"
+      (click)="store.simulateConflict()"
+      data-testid="simulate-conflict-btn"
+    >
+      {{ 'settings.conflictsSim' | t }}
+    </button>
+  </div>
+
+  <np-conflict-banner
+    [conflicts]="store.conflicts()"
+    [showClean]="true"
+    (resolved)="store.resolveConflictAction($event)"
+  />
+</div>

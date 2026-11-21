@@ -1,0 +1,19 @@
+<header class="mobile-bar">
+  @if (showBack()) {
+    <button type="button" class="btn btn-ghost btn-icon" (click)="onBack()" [attr.aria-label]="'nav.back' | t">
+      <np-icon name="back" [size]="20" />
+    </button>
+  } @else {
+    <div class="bar-spacer"></div>
+  }
+
+  <h1 class="bar-title truncate">{{ barTitle() }}</h1>
+
+  @if (showAddAction()) {
+    <button type="button" class="btn btn-ghost btn-icon" (click)="onAction()" [attr.aria-label]="'common.add' | t">
+      <np-icon name="plus" [size]="20" />
+    </button>
+  } @else {
+    <div class="bar-spacer"></div>
+  }
+</header>

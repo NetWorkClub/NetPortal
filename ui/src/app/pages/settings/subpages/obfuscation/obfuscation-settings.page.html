@@ -1,0 +1,163 @@
+<div class="desktop-only" style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+  <a class="btn btn-secondary btn-sm" routerLink="/settings">
+    <np-icon name="back" [size]="15" />
+    <span>{{ 'settings.backToSettings' | t }}</span>
+  </a>
+  <h1 class="view-title">{{ 'settings.catObfuscation' | t }}</h1>
+</div>
+
+<div class="obf-stack">
+  <div class="card">
+    <div class="setting-list">
+      <div class="setting-row">
+        <div class="setting-info">
+          <strong>{{ 'settings.tlsFrag' | t }}</strong>
+          <p class="setting-desc">{{ 'settings.tlsFragDesc' | t }}</p>
+        </div>
+        <np-toggle-switch [checked]="store.tlsFrag()" (toggled)="store.tlsFrag.set($event)" />
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'settings.tlsSize' | t }}</strong></div>
+        <div class="setting-control">
+          <input type="text" class="input mono" [ngModel]="tlsSize()" (ngModelChange)="tlsSize.set($event)" />
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'settings.tlsDelay' | t }}</strong></div>
+        <div class="setting-control">
+          <input type="text" class="input mono" [ngModel]="tlsDelay()" (ngModelChange)="tlsDelay.set($event)" />
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'settings.tlsSniCase' | t }}</strong></div>
+        <np-toggle-switch [checked]="store.tlsSniCase()" (toggled)="store.tlsSniCase.set($event)" />
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'settings.tlsPadding' | t }}</strong></div>
+        <np-toggle-switch [checked]="store.tlsPadding()" (toggled)="store.tlsPadding.set($event)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 10px;">{{ 'settings.awgTitle' | t }}</h2>
+    <div class="setting-list">
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'settings.awgJc' | t }}</strong></div>
+        <div class="setting-control">
+          <input type="number" class="input mono tabular" [ngModel]="awgJc()" (ngModelChange)="awgJc.set(+$event || 5)" />
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'settings.awgJrange' | t }}</strong></div>
+        <div class="setting-control">
+          <input type="text" class="input mono" [ngModel]="awgJrange()" (ngModelChange)="awgJrange.set($event)" />
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'settings.awg31Toggle' | t }}</strong></div>
+        <np-toggle-switch [checked]="store.awg31Default()" (toggled)="store.awg31Default.set($event)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">{{ 'settings.byedpiTitle' | t }}</h2>
+        <p class="setting-desc">{{ 'settings.byedpiDesc' | t }}</p>
+      </div>
+      <np-toggle-switch [checked]="store.byedpiActive()" (toggled)="store.byedpiActive.set($event)" />
+    </div>
+
+    <div class="form-grid-2">
+      <div class="field">
+        <label class="field-label" for="obf-byedpi-preset">{{ 'settings.byedpiPreset' | t }}</label>
+        <select
+          id="obf-byedpi-preset"
+          class="select"
+          [ngModel]="store.byedpiPreset()"
+          (ngModelChange)="onByedpiPresetChange($event)"
+        >
+          <option value="default">Default split + disorder</option>
+          <option value="mobile">Mobile / Cellular OOB</option>
+          <option value="aggressive">Aggressive TLS + DisOOB</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="obf-byedpi-flags">{{ 'settings.byedpiFlags' | t }}</label>
+        <input
+          id="obf-byedpi-flags"
+          type="text"
+          class="input mono"
+          [ngModel]="store.byedpiFlags()"
+          (ngModelChange)="store.byedpiFlags.set($event)"
+        />
+      </div>
+    </div>
+
+    <div class="byedpi-foot">
+      <span class="setting-desc" [style.color]="store.byedpiTestStatus() ? 'var(--state-ok)' : 'var(--text-secondary)'">
+        {{ store.byedpiTestStatus() || ('settings.byedpiReady' | t) }}
+      </span>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="store.runByedpiCheck()">
+        {{ 'settings.byedpiTestBtn' | t }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card desktop-only">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">{{ 'settings.zapretTitle' | t }}</h2>
+        <p class="setting-desc">{{ 'settings.zapretDesc' | t }}</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="store.runZapretBenchmark()">
+          {{ 'settings.zapretBench' | t }}
+        </button>
+        <np-toggle-switch [checked]="store.zapretActive()" (toggled)="store.zapretActive.set($event)" />
+      </div>
+    </div>
+
+    <div class="zapret-table-wrap">
+      <table class="zapret-table">
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>YouTube</th>
+            <th>QUIC</th>
+            <th>Voice</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of store.zapretStrategies(); track s.id) {
+            @let active = s.id === store.zapretSelected();
+            <tr>
+              <td class="mono">{{ s.name }}</td>
+              <td><span class="badge" [class.ok]="s.yt.startsWith('OK')" [class.danger]="!s.yt.startsWith('OK')">{{ s.yt }}</span></td>
+              <td><span class="badge" [class.ok]="s.quic === 'OK'" [class.warn]="s.quic !== 'OK'">{{ s.quic }}</span></td>
+              <td><span class="badge" [class.ok]="s.discord === 'OK'" [class.warn]="s.discord !== 'OK'">{{ s.discord }}</span></td>
+              <td style="text-align: right;">
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  [class.btn-primary]="active"
+                  [class.btn-secondary]="!active"
+                  (click)="pickZapretStrategy(s.id)"
+                >
+                  {{ (active ? 'common.active' : 'common.select') | t }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

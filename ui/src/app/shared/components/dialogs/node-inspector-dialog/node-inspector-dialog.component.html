@@ -1,0 +1,79 @@
+<dialog
+  #dlg
+  class="dialog is-wide"
+  closedby="any"
+  aria-labelledby="dlg-insp-title"
+  (close)="onNativeClose()"
+  (pointerdown)="onPointerDown($event)"
+  (pointerup)="onPointerUp($event)"
+>
+  <div class="dialog-head">
+    <h2 id="dlg-insp-title">
+      @if (node(); as n) {
+        {{ n.name }} ({{ n.proto }})
+      } @else {
+        {{ 'dialogs.inspTitle' | t }}
+      }
+    </h2>
+    <button type="button" class="btn btn-ghost btn-icon btn-sm" (click)="closeDialog()" [attr.aria-label]="'common.cancel' | t">
+      <np-icon name="close" [size]="16" />
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    @if (node(); as n) {
+      <div class="form-grid-2">
+        <div class="field">
+          <label class="field-label" for="insp-name">{{ 'dialogs.inspName' | t }}</label>
+          <input
+            id="insp-name"
+            type="text"
+            class="input"
+            [ngModel]="editName()"
+            (ngModelChange)="editName.set($event)"
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="insp-mtu">MTU</label>
+          <input
+            id="insp-mtu"
+            type="number"
+            min="1200"
+            max="1500"
+            class="input mono tabular"
+            [ngModel]="editMtu()"
+            (ngModelChange)="editMtu.set(+$event || 1280)"
+          />
+        </div>
+      </div>
+
+      <div class="kv-grid">
+        <div class="kv-cell"><span class="kv-key">Endpoint</span><span class="kv-val">{{ n.endpoint }}</span></div>
+        <div class="kv-cell"><span class="kv-key">{{ 'nodes.colTcp' | t }}</span><span class="kv-val">{{ n.tcpMs !== null ? n.tcpMs + ' ms' : '--' }}</span></div>
+        <div class="kv-cell"><span class="kv-key">{{ 'nodes.colUrl' | t }}</span><span class="kv-val">{{ n.urlMs !== null ? n.urlMs + ' ms' : ('common.timeout' | t) }}</span></div>
+        <div class="kv-cell"><span class="kv-key">{{ 'nodes.colAntibot' | t }}</span><span class="kv-val">{{ n.antiBot }}</span></div>
+      </div>
+
+      <h3 class="subsection-title">{{ n.proto }}</h3>
+      <div class="form-grid-2">
+        @for (param of editParams(); track param.key; let i = $index) {
+          <div class="field">
+            <label class="field-label" [for]="'insp-param-' + param.key">{{ param.key }}</label>
+            <input
+              [id]="'insp-param-' + param.key"
+              type="text"
+              class="input mono"
+              [ngModel]="param.value"
+              (ngModelChange)="updateParamValue(i, $event)"
+            />
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-secondary" (click)="closeDialog()">{{ 'common.cancel' | t }}</button>
+    <button type="button" class="btn btn-primary" (click)="save()">{{ 'dialogs.inspSave' | t }}</button>
+  </div>
+</dialog>

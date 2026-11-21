@@ -1,0 +1,40 @@
+.obf-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.byedpi-foot {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.zapret-table-wrap {
+  overflow-x: auto;
+}
+
+.zapret-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-align: left;
+    font-size: 0.8125rem;
+  }
+
+  th {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}

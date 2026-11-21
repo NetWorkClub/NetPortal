@@ -1,0 +1,67 @@
+<div class="view-header">
+  <div>
+    <h1 class="view-title">{{ 'logs.title' | t }}</h1>
+  </div>
+  <div class="logs-actions">
+    <span class="badge mono tabular">{{ 'logs.buffer' | t : { count: store.logs().length } }}</span>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="togglePause()">
+      {{ (store.logsPaused() ? 'logs.resume' : 'logs.pause') | t }}
+    </button>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="clearLogs()">
+      {{ 'logs.clear' | t }}
+    </button>
+    <button type="button" class="btn btn-primary btn-sm" (click)="exportLogs()">
+      {{ 'logs.export' | t }}
+    </button>
+  </div>
+</div>
+
+<div class="logs-filters">
+  <div class="logs-search">
+    <input
+      type="search"
+      class="input"
+      [ngModel]="store.logSearch()"
+      (ngModelChange)="store.logSearch.set($event)"
+      [placeholder]="'logs.filterPlaceholder' | t"
+    />
+  </div>
+
+  <select
+    class="select logs-select"
+    [ngModel]="store.logCat()"
+    (ngModelChange)="store.logCat.set($event)"
+  >
+    <option value="all">{{ 'logs.catAll' | t }}</option>
+    <option value="core">core</option>
+    <option value="router">router</option>
+    <option value="probe">probe</option>
+    <option value="dpi">dpi</option>
+  </select>
+
+  <select
+    class="select logs-select"
+    [ngModel]="store.logLevel()"
+    (ngModelChange)="store.logLevel.set($event)"
+  >
+    <option value="all">{{ 'logs.lvlAll' | t }}</option>
+    <option value="info">info</option>
+    <option value="warn">warn</option>
+    <option value="error">error</option>
+  </select>
+</div>
+
+<div class="logs-stream">
+  @if (store.filteredLogs().length === 0) {
+    <div style="color: var(--text-muted); padding: 12px;">{{ 'logs.empty' | t }}</div>
+  } @else {
+    @for (l of store.filteredLogs(); track $index) {
+      <div class="log-line">
+        <span class="log-time">{{ l.time }}</span>
+        <span class="log-lvl" [class]="l.lvl">{{ l.lvl }}</span>
+        <span class="log-cat">[{{ l.cat }}]</span>
+        <span class="log-msg">{{ l.msg }}</span>
+      </div>
+    }
+  }
+</div>

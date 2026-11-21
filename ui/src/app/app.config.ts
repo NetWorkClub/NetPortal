@@ -1,0 +1,15 @@
+import { provideHttpClient } from '@angular/common/http';
+import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter, withHashLocation } from '@angular/router';
+import { MockTransport } from '@core/transport/mock.transport';
+import { NETPORTAL_TRANSPORT } from '@core/transport/transport.token';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZonelessChangeDetection(),
+    provideHttpClient(),
+    provideRouter(routes, withHashLocation()),
+    { provide: NETPORTAL_TRANSPORT, useClass: MockTransport },
+  ],
+};

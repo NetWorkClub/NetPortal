@@ -1,0 +1,123 @@
+@use 'abstracts/mixins' as *;
+
+:host {
+  display: block;
+
+  @include mobile-only {
+    display: none;
+  }
+}
+
+.rail {
+  width: var(--rail-width);
+  height: 100dvh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.rail-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(75, 226, 184, 0.32);
+}
+
+.brand-name {
+  font-weight: 600;
+  font-size: 0.96875rem;
+  letter-spacing: -0.01em;
+}
+
+.brand-ver {
+  font-size: 0.725rem;
+  color: var(--text-muted);
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: background-color var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  &.is-active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: rgba(75, 226, 184, 0.28);
+  }
+}
+
+.nav-badge {
+  margin-left: auto;
+}
+
+.rail-footer {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tele-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78125rem;
+  color: var(--text-secondary);
+}
+
+.daemon-pill {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.daemon-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--state-ok);
+  flex-shrink: 0;
+}

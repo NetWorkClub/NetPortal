@@ -1,0 +1,140 @@
+<div class="view-header">
+  <div>
+    <h1 class="view-title">{{ 'routing.title' | t }}</h1>
+    <p class="view-sub">{{ 'routing.subtitle' | t }}</p>
+  </div>
+
+  <div class="routing-head-actions">
+    <div class="tabs-bar" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="tab-btn"
+        [attr.aria-selected]="tab() === 'rules'"
+        (click)="tab.set('rules')"
+      >
+        {{ 'routing.tabRules' | t }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="tab-btn"
+        [attr.aria-selected]="tab() === 'chain'"
+        (click)="tab.set('chain')"
+      >
+        {{ 'routing.tabChain' | t }}
+      </button>
+    </div>
+
+    <a class="btn btn-primary btn-sm" routerLink="/routing/rule/new" data-testid="open-add-rule-btn">
+      <np-icon name="plus" [size]="15" />
+      <span>{{ 'routing.addRule' | t }}</span>
+    </a>
+  </div>
+</div>
+
+@if (tab() === 'rules') {
+  <div class="card" style="margin-bottom: 14px;">
+    <div class="form-grid-3">
+      <div class="field">
+        <label class="field-label" for="routing-profile-select">{{ 'routing.profileLabel' | t }}</label>
+        <select
+          id="routing-profile-select"
+          class="select"
+          [ngModel]="store.activeProfileId()"
+          (ngModelChange)="store.activeProfileId.set($event)"
+        >
+          @for (p of store.profiles(); track p.id) {
+            <option [value]="p.id">{{ profileLabel(p.nameRu, p.nameEn) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="balancer-strategy-select">{{ 'routing.balancerLabel' | t }}</label>
+        <select
+          id="balancer-strategy-select"
+          class="select"
+          [ngModel]="store.balancerStrategy()"
+          (ngModelChange)="store.balancerStrategy.set($event)"
+        >
+          <option value="sticky">{{ 'routing.balancerSticky' | t }}</option>
+          <option value="lowest">{{ 'routing.balancerLowest' | t }}</option>
+          <option value="round-robin">{{ 'routing.balancerRoundRobin' | t }}</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="routing-ipv6-select">{{ 'routing.ipv6Label' | t }}</label>
+        <select
+          id="routing-ipv6-select"
+          class="select"
+          [ngModel]="store.routingIpv6()"
+          (ngModelChange)="store.routingIpv6.set($event)"
+        >
+          <option value="ipv4-only">{{ 'routing.ipv6Off' | t }}</option>
+          <option value="prefer-ipv6">{{ 'routing.ipv6Prefer' | t }}</option>
+          <option value="dual">{{ 'routing.ipv6Dual' | t }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row" style="margin-top: 12px; padding-bottom: 0; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+      <div class="setting-info">
+        <strong>{{ 'routing.sniffingName' | t }}</strong>
+        <p class="setting-desc">{{ 'routing.sniffingDesc' | t }}</p>
+      </div>
+      <np-toggle-switch
+        [checked]="store.sniffing()"
+        (toggled)="store.sniffing.set($event)"
+      />
+    </div>
+  </div>
+
+  <np-rule-tester />
+
+  <np-rule-list-tier
+    [tierNumber]="1"
+    titleKey="routing.tier1Title"
+    [hintText]="tier1Hint()"
+    emptyKey="routing.tier1Empty"
+    [rules]="tier1Rules()"
+    [showCreateButton]="true"
+    (createClicked)="openNewRule()"
+  />
+
+  <np-rule-list-tier
+    [tierNumber]="2"
+    titleKey="routing.tier2Title"
+    emptyKey="routing.tier2Empty"
+    [rules]="tier2Rules()"
+    [showCreateButton]="true"
+    (createClicked)="openNewRule()"
+  />
+
+  <np-presets-panel />
+
+  <div class="card">
+    <div class="setting-row" style="padding: 0;">
+      <div class="setting-info">
+        <strong>{{ 'routing.defaultTargetTitle' | t }}</strong>
+        <p class="setting-desc">{{ 'routing.defaultTargetDesc' | t }}</p>
+      </div>
+      <div class="setting-control">
+        <select
+          class="select"
+          [ngModel]="store.activeProfile().defaultTarget"
+          (ngModelChange)="store.setDefaultTarget($event)"
+          data-testid="default-target-select"
+        >
+          <option value="direct">{{ 'common.direct' | t }}</option>
+          <option value="group:sticky-ai">{{ 'common.stickyAi' | t }}</option>
+          <option value="byedpi">{{ 'common.byedpi' | t }}</option>
+          <option value="block">{{ 'common.block' | t }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+} @else {
+  <np-sticky-chain />
+}

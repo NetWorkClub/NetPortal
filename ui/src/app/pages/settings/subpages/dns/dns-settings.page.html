@@ -1,0 +1,56 @@
+<div class="desktop-only" style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+  <a class="btn btn-secondary btn-sm" routerLink="/settings">
+    <np-icon name="back" [size]="15" />
+    <span>{{ 'settings.backToSettings' | t }}</span>
+  </a>
+  <h1 class="view-title">{{ 'settings.catDns' | t }}</h1>
+</div>
+
+<div class="card">
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-info"><strong>{{ 'settings.dnsRemote' | t }}</strong></div>
+      <div class="setting-control">
+        <input type="text" class="input mono" [ngModel]="dnsRemote()" (ngModelChange)="dnsRemote.set($event)" />
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info"><strong>{{ 'settings.dnsDirect' | t }}</strong></div>
+      <div class="setting-control">
+        <input type="text" class="input mono" [ngModel]="dnsDirect()" (ngModelChange)="dnsDirect.set($event)" />
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.fakeIp' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.fakeIpDesc' | t }}</p>
+      </div>
+      <np-toggle-switch [checked]="store.fakeIp()" (toggled)="store.fakeIp.set($event)" />
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.smartDnsToggle' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.smartDnsDesc' | t }}</p>
+      </div>
+      <np-toggle-switch [checked]="store.smartDnsActive()" (toggled)="store.smartDnsActive.set($event)" />
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info"><strong>{{ 'settings.smartDnsMode' | t }}</strong></div>
+      <div class="setting-control">
+        <select
+          class="select"
+          [ngModel]="store.smartDnsMode()"
+          (ngModelChange)="store.smartDnsMode.set($event)"
+        >
+          <option value="proxy">{{ 'settings.smartModeProxy' | t }}</option>
+          <option value="tun">{{ 'settings.smartModeTun' | t }}</option>
+          <option value="hosts" class="desktop-only">{{ 'settings.smartModeHosts' | t }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>

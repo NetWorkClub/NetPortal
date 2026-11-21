@@ -1,0 +1,399 @@
+<div class="rule-editor-shell">
+  <div class="editor-head desktop-only">
+    <a class="btn btn-secondary btn-sm" routerLink="/routing" data-testid="rule-editor-back-btn">
+      <np-icon name="back" [size]="15" />
+      <span>{{ 'ruleEditor.backToRules' | t }}</span>
+    </a>
+    <h1 class="view-title" data-testid="rule-editor-heading">
+      {{ (editingRuleId() ? 'ruleEditor.editTitle' : 'ruleEditor.createTitle') | t }}
+    </h1>
+  </div>
+
+  @if (conflictWarnings().length > 0) {
+    <div class="rule-conflict-box" role="status" data-testid="re-conflict-box">
+      <np-icon name="warning" [size]="17" />
+      <div>
+        <strong>{{ 'ruleEditor.conflictWarnTitle' | t }}</strong>
+        <p class="conflict-warn-msg">{{ conflictWarnings()[0] }}</p>
+      </div>
+    </div>
+  }
+
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 12px;">{{ 'ruleEditor.sectionBase' | t }}</h2>
+    <div class="form-grid-2">
+      <div class="field">
+        <label class="field-label" for="re-name">{{ 'ruleEditor.nameLabel' | t }}</label>
+        <input
+          id="re-name"
+          type="text"
+          class="input"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          [placeholder]="'ruleEditor.namePlaceholder' | t"
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="re-tier">{{ 'ruleEditor.tierLabel' | t }}</label>
+        <select
+          id="re-tier"
+          class="select"
+          [ngModel]="tier()"
+          (ngModelChange)="onTierChange($event)"
+        >
+          <option value="combined">{{ 'ruleEditor.tierCombined' | t }}</option>
+          <option value="app">{{ 'ruleEditor.tierApp' | t }}</option>
+          <option value="network">{{ 'ruleEditor.tierNetwork' | t }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-list" style="margin-top: 12px;">
+      <div class="setting-row">
+        <div class="setting-info"><strong>{{ 'ruleEditor.enabledLabel' | t }}</strong></div>
+        <np-toggle-switch [checked]="enabled()" (toggled)="enabled.set($event)" />
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <strong>{{ 'ruleEditor.invertLabel' | t }}</strong>
+          <p class="setting-desc">{{ 'ruleEditor.invertDesc' | t }}</p>
+        </div>
+        <np-toggle-switch [checked]="invert()" (toggled)="invert.set($event)" />
+      </div>
+
+      @if (tier() !== 'network') {
+        <div class="setting-row">
+          <div class="setting-info"><strong>{{ 'ruleEditor.continueLabel' | t }}</strong></div>
+          <np-toggle-switch [checked]="continueToNetwork()" (toggled)="continueToNetwork.set($event)" />
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (tier() !== 'network') {
+    <div class="card">
+      <h2 class="card-title" style="margin-bottom: 12px;">{{ 'ruleEditor.sectionApps' | t }}</h2>
+      <div class="field" style="margin-bottom: 12px;">
+        <label class="field-label" for="re-app-mode">{{ 'ruleEditor.appModeLabel' | t }}</label>
+        <select
+          id="re-app-mode"
+          class="select"
+          [ngModel]="appMode()"
+          (ngModelChange)="appMode.set($event)"
+        >
+          <option value="include">{{ 'ruleEditor.appModeInclude' | t }}</option>
+          <option value="exclude">{{ 'ruleEditor.appModeExclude' | t }}</option>
+          <option value="off">{{ 'ruleEditor.appModeOff' | t }}</option>
+        </select>
+      </div>
+
+      @if (appMode() !== 'off') {
+        <div class="field" style="margin-bottom: 12px;">
+          <span class="field-label">
+            {{ (platformSvc.platform() === 'android' ? 'ruleEditor.appPickLabelAndroid' : 'ruleEditor.appPickLabelDesktop') | t }}
+          </span>
+          <div class="chip-picker">
+            @for (chip of appPoolChips(); track chip) {
+              <button
+                type="button"
+                class="chip-toggle"
+                [class.is-active]="hasAppChip(chip)"
+                [attr.aria-pressed]="hasAppChip(chip)"
+                (click)="toggleAppChip(chip)"
+              >
+                {{ chip }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label class="field-label" for="re-apps-input">{{ 'ruleEditor.appInputLabel' | t }}</label>
+            <input
+              id="re-apps-input"
+              type="text"
+              class="input mono"
+              [ngModel]="appsText()"
+              (ngModelChange)="appsText.set($event)"
+              placeholder="cursor.exe, com.anthropic.claude"
+            />
+          </div>
+          <div class="field">
+            <label class="field-label" for="re-app-paths">{{ 'ruleEditor.appPathLabel' | t }}</label>
+            <input
+              id="re-app-paths"
+              type="text"
+              class="input mono"
+              [ngModel]="appPathsText()"
+              (ngModelChange)="appPathsText.set($event)"
+              placeholder="/usr/bin/curl, C:\Apps\client.exe"
+            />
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (tier() !== 'app') {
+    <div class="card">
+      <h2 class="card-title" style="margin-bottom: 12px;">{{ 'ruleEditor.sectionDomains' | t }}</h2>
+      <div class="form-grid-2">
+        <div class="field">
+          <label class="field-label" for="re-domains">{{ 'ruleEditor.domainExactLabel' | t }}</label>
+          <input
+            id="re-domains"
+            type="text"
+            class="input mono"
+            [ngModel]="domainsText()"
+            (ngModelChange)="domainsText.set($event)"
+            placeholder="api.openai.com, doubleclick.net"
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="re-suffixes">{{ 'ruleEditor.domainSuffixLabel' | t }}</label>
+          <input
+            id="re-suffixes"
+            type="text"
+            class="input mono"
+            [ngModel]="suffixesText()"
+            (ngModelChange)="suffixesText.set($event)"
+            placeholder=".anthropic.com, .youtube.com"
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="re-keywords">{{ 'ruleEditor.domainKeywordLabel' | t }}</label>
+          <input
+            id="re-keywords"
+            type="text"
+            class="input mono"
+            [ngModel]="keywordsText()"
+            (ngModelChange)="keywordsText.set($event)"
+            placeholder="claude, googlevideo"
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="re-lists">{{ 'ruleEditor.externalListLabel' | t }}</label>
+          <input
+            id="re-lists"
+            type="text"
+            class="input mono"
+            [ngModel]="listsText()"
+            (ngModelChange)="listsText.set($event)"
+            placeholder="iplist.opencck.org:youtube"
+          />
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: 12px;">
+        <label class="field-label" for="re-regex">{{ 'ruleEditor.domainRegexLabel' | t }}</label>
+        <input
+          id="re-regex"
+          type="text"
+          class="input mono"
+          [ngModel]="regex()"
+          (ngModelChange)="regex.set($event)"
+          placeholder="^r[0-9]+---sn-.*\.googlevideo\.com$"
+        />
+        @if (regexValidation(); as rv) {
+          <p
+            class="setting-desc mono"
+            style="margin-top: 6px;"
+            [style.color]="rv.ok ? 'var(--state-ok)' : 'var(--state-danger)'"
+            data-testid="re-regex-status"
+          >
+            {{ rv.ok ? ('ruleEditor.regexValid' | t) : ('ruleEditor.regexInvalid' | t : { err: rv.error || '' }) }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title" style="margin-bottom: 12px;">{{ 'ruleEditor.sectionIp' | t }}</h2>
+      <div class="form-grid-2">
+        <div class="field">
+          <label class="field-label" for="re-cidrs">{{ 'ruleEditor.cidrLabel' | t }}</label>
+          <input
+            id="re-cidrs"
+            type="text"
+            class="input mono"
+            [ngModel]="cidrsText()"
+            (ngModelChange)="cidrsText.set($event)"
+            placeholder="192.168.0.0/16, 100.64.0.0/10"
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="re-pools">{{ 'ruleEditor.ipPoolLabel' | t }}</label>
+          <input
+            id="re-pools"
+            type="text"
+            class="input mono"
+            [ngModel]="ipPoolsText()"
+            (ngModelChange)="ipPoolsText.set($event)"
+            placeholder="10.10.0.1-10.10.255.254"
+          />
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: 12px;">
+        <span class="field-label">{{ 'ruleEditor.geoipLabel' | t }}</span>
+        <div class="chip-picker">
+          @for (code of geoipChips; track code) {
+            <button
+              type="button"
+              class="chip-toggle"
+              [class.is-active]="hasGeoip(code)"
+              [attr.aria-pressed]="hasGeoip(code)"
+              (click)="toggleGeoip(code)"
+            >
+              geoip:{{ code }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 12px;">{{ 'ruleEditor.sectionTransport' | t }}</h2>
+    <div class="form-grid-2">
+      <div class="field">
+        <label class="field-label" for="re-network">{{ 'ruleEditor.networkLabel' | t }}</label>
+        <select
+          id="re-network"
+          class="select"
+          [ngModel]="network()"
+          (ngModelChange)="network.set($event)"
+        >
+          <option value="both">{{ 'ruleEditor.networkBoth' | t }}</option>
+          <option value="tcp">{{ 'ruleEditor.networkTcp' | t }}</option>
+          <option value="udp">{{ 'ruleEditor.networkUdp' | t }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="re-ports">{{ 'ruleEditor.portsLabel' | t }}</label>
+        <input
+          id="re-ports"
+          type="text"
+          class="input mono"
+          [ngModel]="portsText()"
+          (ngModelChange)="portsText.set($event)"
+          placeholder="443, 8443, 20000-25000"
+        />
+      </div>
+      <div class="field">
+        <label class="field-label" for="re-ipver">{{ 'ruleEditor.ipVerLabel' | t }}</label>
+        <select
+          id="re-ipver"
+          class="select"
+          [ngModel]="ipVer()"
+          (ngModelChange)="ipVer.set($event)"
+        >
+          <option value="any">{{ 'ruleEditor.ipVerAny' | t }}</option>
+          <option value="ipv4">{{ 'ruleEditor.ipVer4' | t }}</option>
+          <option value="ipv6">{{ 'ruleEditor.ipVer6' | t }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="re-inbound">{{ 'ruleEditor.inboundLabel' | t }}</label>
+        <select
+          id="re-inbound"
+          class="select"
+          [ngModel]="inbound()"
+          (ngModelChange)="inbound.set($event)"
+        >
+          <option value="any">{{ 'ruleEditor.inboundAny' | t }}</option>
+          <option value="tun">{{ 'ruleEditor.inboundTun' | t }}</option>
+          <option value="proxy">{{ 'ruleEditor.inboundProxy' | t }}</option>
+          <option value="lan">{{ 'ruleEditor.inboundLan' | t }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top: 12px;">
+      <span class="field-label">{{ 'ruleEditor.l7Label' | t }}</span>
+      <div class="chip-picker">
+        @for (proto of l7Chips; track proto) {
+          <button
+            type="button"
+            class="chip-toggle"
+            [class.is-active]="hasL7(proto)"
+            [attr.aria-pressed]="hasL7(proto)"
+            (click)="toggleL7(proto)"
+          >
+            {{ proto.toUpperCase() }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title" style="margin-bottom: 12px;">{{ 'ruleEditor.sectionAction' | t }}</h2>
+    <div class="action-tiles">
+      <button
+        type="button"
+        class="action-tile"
+        [class.is-active]="actionKind() === 'node'"
+        [attr.aria-pressed]="actionKind() === 'node'"
+        (click)="pickActionKind('node')"
+      >
+        <strong>{{ 'common.stickyAi' | t }}</strong>
+      </button>
+      <button
+        type="button"
+        class="action-tile"
+        [class.is-active]="actionKind() === 'direct'"
+        [attr.aria-pressed]="actionKind() === 'direct'"
+        (click)="pickActionKind('direct')"
+      >
+        <strong>{{ 'common.direct' | t }}</strong>
+      </button>
+      <button
+        type="button"
+        class="action-tile"
+        [class.is-active]="actionKind() === 'byedpi'"
+        [attr.aria-pressed]="actionKind() === 'byedpi'"
+        (click)="pickActionKind('byedpi')"
+      >
+        <strong>{{ 'common.byedpi' | t }}</strong>
+      </button>
+      <button
+        type="button"
+        class="action-tile"
+        [class.is-active]="actionKind() === 'block'"
+        [attr.aria-pressed]="actionKind() === 'block'"
+        (click)="pickActionKind('block')"
+      >
+        <strong>{{ 'common.block' | t }}</strong>
+      </button>
+    </div>
+
+    @if (actionKind() === 'node') {
+      <div class="field" style="margin-top: 12px;">
+        <label class="field-label" for="re-target-detail">{{ 'ruleEditor.targetNodeGroupLabel' | t }}</label>
+        <select
+          id="re-target-detail"
+          class="select"
+          [ngModel]="target()"
+          (ngModelChange)="target.set($event)"
+        >
+          <option value="group:sticky-ai">{{ 'common.stickyAi' | t }}</option>
+          <option value="group:auto-fastest">{{ store.getTargetLabel('group:auto-fastest') }}</option>
+          @for (n of store.nodes(); track n.id) {
+            <option [value]="'node:' + n.id">[{{ n.iso }}] {{ n.name }} ({{ n.proto }})</option>
+          }
+        </select>
+      </div>
+    }
+  </div>
+
+  <div class="editor-footer-bar">
+    <a class="btn btn-secondary" routerLink="/routing">{{ 'ruleEditor.cancelBtn' | t }}</a>
+    <button type="button" class="btn btn-primary" (click)="save()" data-testid="re-save-btn">
+      {{ 'ruleEditor.saveBtn' | t }}
+    </button>
+  </div>
+</div>

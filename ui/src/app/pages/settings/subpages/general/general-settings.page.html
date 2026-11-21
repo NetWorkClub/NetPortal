@@ -1,0 +1,127 @@
+<div class="subview-head desktop-only" style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+  <a class="btn btn-secondary btn-sm" routerLink="/settings" data-testid="settings-back-btn">
+    <np-icon name="back" [size]="15" />
+    <span>{{ 'settings.backToSettings' | t }}</span>
+  </a>
+  <h1 class="view-title">{{ 'settings.catGeneral' | t }}</h1>
+</div>
+
+<div class="card">
+  <div class="setting-list">
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.langLabel' | t }}</strong>
+      </div>
+      <div class="setting-control">
+        <select
+          id="set-lang"
+          class="select"
+          [ngModel]="i18n.lang()"
+          (ngModelChange)="i18n.setLang($event)"
+          data-testid="set-lang"
+        >
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.themeLabel' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.themeDesc' | t }}</p>
+      </div>
+      <div class="setting-control">
+        <select
+          id="set-theme"
+          class="select"
+          [ngModel]="themeSvc.theme()"
+          (ngModelChange)="themeSvc.setTheme($event)"
+          data-testid="set-theme"
+        >
+          <option value="dark">{{ 'settings.themeDark' | t }}</option>
+          <option value="light">{{ 'settings.themeLight' | t }}</option>
+          <option value="system">{{ 'settings.themeSystem' | t }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.ipCheck' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.ipCheckDesc' | t }}</p>
+      </div>
+      <np-toggle-switch
+        [checked]="store.ipCheckOnConnect()"
+        (toggled)="store.ipCheckOnConnect.set($event)"
+      />
+    </div>
+
+    <div class="setting-row desktop-only">
+      <div class="setting-info">
+        <strong>{{ 'settings.closeAction' | t }}</strong>
+      </div>
+      <div class="setting-control">
+        <select
+          class="select"
+          [ngModel]="closeAction()"
+          (ngModelChange)="closeAction.set($event)"
+        >
+          <option value="tray">{{ 'settings.closeTray' | t }}</option>
+          <option value="exit">{{ 'settings.closeExit' | t }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row desktop-only">
+      <div class="setting-info">
+        <strong>{{ 'settings.autostart' | t }}</strong>
+      </div>
+      <np-toggle-switch
+        [checked]="store.autostart()"
+        (toggled)="store.autostart.set($event)"
+      />
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.memLimit' | t }}</strong>
+        <p class="setting-desc">{{ 'settings.memLimitDesc' | t }}</p>
+      </div>
+      <np-toggle-switch
+        [checked]="store.memLimit()"
+        (toggled)="store.memLimit.set($event)"
+      />
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.testUrl' | t }}</strong>
+      </div>
+      <div class="setting-control">
+        <input
+          type="url"
+          class="input mono"
+          [ngModel]="testUrl()"
+          (ngModelChange)="testUrl.set($event)"
+        />
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <strong>{{ 'settings.testInterval' | t }}</strong>
+      </div>
+      <div class="setting-control">
+        <input
+          type="number"
+          min="30"
+          max="3600"
+          class="input mono tabular"
+          [ngModel]="testInterval()"
+          (ngModelChange)="testInterval.set(+$event || 300)"
+        />
+      </div>
+    </div>
+  </div>
+</div>

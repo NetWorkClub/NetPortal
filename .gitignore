@@ -1,0 +1,66 @@
+# Go & Wails build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.txt
+coverage.html
+desktop/build/bin/
+desktop/wailsjs/
+
+# Node & Frontend (ui/)
+ui/node_modules/
+ui/dist/
+ui/.vite/
+ui/.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Android & gomobile build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+*.aar
+*.ap_
+*.dex
+*.class
+
+# iOS & Apple build artifacts
+ios/DerivedData/
+ios/build/
+*.xcarchive
+*.ipa
+*.xcframework/
+
+# Downloaded or extracted runtime assets (winws, nfqws, ciadpi, geoip/geosite)
+assets/bin/
+core/assets/bin/
+core/assets/geo/
+release-dist/
+
+# Local test configs, secrets, and environment overrides
+.env
+.env.*
+.local/
+*.conf
+*.key
+*.pem
+*.ovpn
+*.yaml.local
+*.yml.local
+
+# IDE & OS metadata
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+desktop.ini

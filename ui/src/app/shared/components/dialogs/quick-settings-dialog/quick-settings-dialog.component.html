@@ -1,0 +1,101 @@
+<dialog
+  #dlg
+  class="dialog"
+  closedby="any"
+  aria-labelledby="dlg-quick-title"
+  (close)="onNativeClose()"
+  (pointerdown)="onPointerDown($event)"
+  (pointerup)="onPointerUp($event)"
+>
+  <div class="dialog-head">
+    <h2 id="dlg-quick-title">{{ 'dialogs.quickTitle' | t }}</h2>
+    <button type="button" class="btn btn-ghost btn-icon btn-sm" (click)="closeDialog()" [attr.aria-label]="'common.cancel' | t">
+      <np-icon name="close" [size]="16" />
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    <div class="setting-list">
+      <div class="setting-row">
+        <div class="setting-info">
+          <strong>{{ 'settings.serviceMode' | t }}</strong>
+          <p class="setting-desc">{{ 'settings.serviceModeDesc' | t }}</p>
+        </div>
+        <div class="setting-control">
+          <select
+            class="select"
+            [ngModel]="store.serviceMode()"
+            (ngModelChange)="store.serviceMode.set($event)"
+          >
+            <option value="vpn">{{ 'settings.modeVpn' | t }}</option>
+            <option value="system-proxy">{{ 'settings.modeSysProxy' | t }}</option>
+            <option value="local-proxy">{{ 'settings.modeLocalProxy' | t }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <strong>{{ 'routing.profileLabel' | t }}</strong>
+        </div>
+        <div class="setting-control">
+          <select
+            class="select"
+            [ngModel]="store.activeProfileId()"
+            (ngModelChange)="store.activeProfileId.set($event)"
+          >
+            @for (p of store.profiles(); track p.id) {
+              <option [value]="p.id">{{ profileLabel(p.nameRu, p.nameEn) }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <strong>{{ 'settings.byedpiTitle' | t }}</strong>
+          <p class="setting-desc">SOCKS5 :10801</p>
+        </div>
+        <np-toggle-switch
+          [checked]="store.byedpiActive()"
+          (toggled)="store.byedpiActive.set($event)"
+        />
+      </div>
+
+      @if (platformSvc.platform() === 'desktop') {
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>{{ 'settings.zapretTitle' | t }}</strong>
+            <p class="setting-desc">winws / nfqws</p>
+          </div>
+          <np-toggle-switch
+            [checked]="store.zapretActive()"
+            (toggled)="store.zapretActive.set($event)"
+          />
+        </div>
+      }
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <strong>{{ 'settings.smartDnsToggle' | t }}</strong>
+          <p class="setting-desc">HTTPS / DNS</p>
+        </div>
+        <np-toggle-switch
+          [checked]="store.smartDnsActive()"
+          (toggled)="store.smartDnsActive.set($event)"
+        />
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <strong>{{ 'settings.tlsFrag' | t }}</strong>
+          <p class="setting-desc">ClientHello split</p>
+        </div>
+        <np-toggle-switch
+          [checked]="store.tlsFrag()"
+          (toggled)="store.tlsFrag.set($event)"
+        />
+      </div>
+    </div>
+  </div>
+</dialog>

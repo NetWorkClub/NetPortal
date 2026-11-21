@@ -1,0 +1,65 @@
+<div class="view-header">
+  <div>
+    <h1 class="view-title">{{ 'nodes.title' | t }}</h1>
+    <p class="view-sub">{{ 'nodes.subtitle' | t }}</p>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="modals.openGenerator(false, 'warp')" data-testid="nodes-open-gen-btn">
+      <np-icon name="spark" [size]="15" />
+      <span>{{ 'nodes.genBtn' | t }}</span>
+    </button>
+    <button type="button" class="btn btn-primary btn-sm desktop-only" (click)="modals.openAdd()" data-testid="nodes-add-btn">
+      <np-icon name="plus" [size]="15" />
+      <span>{{ 'common.add' | t }}</span>
+    </button>
+  </div>
+</div>
+
+<np-sources-strip />
+
+<div class="nodes-toolbar">
+  <div class="toolbar-search">
+    <input
+      type="search"
+      class="input"
+      [ngModel]="store.searchQuery()"
+      (ngModelChange)="store.searchQuery.set($event)"
+      [placeholder]="'nodes.searchPlaceholder' | t"
+    />
+  </div>
+
+  <select
+    class="select toolbar-sort"
+    [ngModel]="store.sortBy()"
+    (ngModelChange)="store.sortBy.set($event)"
+  >
+    <option value="url">{{ 'nodes.sortUrl' | t }}</option>
+    <option value="tcp">{{ 'nodes.sortTcp' | t }}</option>
+    <option value="name">{{ 'nodes.sortName' | t }}</option>
+    <option value="proto">{{ 'nodes.sortProto' | t }}</option>
+  </select>
+
+  <div class="toolbar-probes">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="store.runProbe('tcp')">
+      {{ 'nodes.pingTcp' | t }}
+    </button>
+    <button type="button" class="btn btn-primary btn-sm" (click)="store.runProbe('url')">
+      {{ 'nodes.pingUrl' | t }}
+    </button>
+  </div>
+</div>
+
+<div class="proto-pills">
+  @for (pf of protoFilters; track pf.id) {
+    <button
+      type="button"
+      class="pill"
+      [attr.aria-pressed]="store.protoFilter() === pf.id"
+      (click)="store.protoFilter.set(pf.id)"
+    >
+      {{ pf.key | t }}
+    </button>
+  }
+</div>
+
+<np-nodes-table />

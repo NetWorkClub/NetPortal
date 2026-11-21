@@ -1,0 +1,237 @@
+.nodes-region {
+  container: nodes / inline-size;
+  min-width: 0;
+}
+
+.table-wrap {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.nodes-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 9px 10px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-inset);
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr.is-selected-node {
+    background: rgba(75, 226, 184, 0.06);
+  }
+}
+
+.node-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.iso-chip {
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.725rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.node-name-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.node-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.node-endpoint {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.node-actions-group {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+td[data-col='actions'] {
+  text-align: right;
+}
+
+/* Tier 1 (< 760px container): compact 2-row card */
+@container nodes (inline-size < 760px) {
+  .table-wrap {
+    border: none;
+    background: transparent;
+  }
+
+  .nodes-table thead {
+    display: none;
+  }
+
+  .nodes-table,
+  .nodes-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .nodes-table tbody tr {
+    display: grid;
+    grid-template-columns: 18px auto auto auto minmax(0, 1fr) auto;
+    row-gap: 6px;
+    column-gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+  }
+
+  .nodes-table tbody tr.is-selected-node {
+    border-color: var(--accent);
+    background: var(--bg-surface);
+  }
+
+  .nodes-table td {
+    border: none;
+    padding: 0;
+  }
+
+  .nodes-table td[data-col='check'] {
+    grid-row: 1;
+    grid-column: 1;
+    align-self: center;
+  }
+
+  .nodes-table td[data-col='node'] {
+    grid-row: 1;
+    grid-column: 2 / 6;
+    min-width: 0;
+    align-self: center;
+  }
+
+  .nodes-table td[data-col='actions'] {
+    grid-row: 1;
+    grid-column: 6;
+    justify-self: end;
+    align-self: center;
+    text-align: right;
+  }
+
+  .nodes-table td[data-col='proto'] {
+    grid-row: 2;
+    grid-column: 2;
+    align-self: center;
+  }
+
+  .nodes-table td[data-col='tcp'] {
+    grid-row: 2;
+    grid-column: 3;
+    align-self: center;
+    white-space: nowrap;
+
+    &::before {
+      content: 'TCP ';
+      color: var(--text-muted);
+      font-size: 0.725rem;
+    }
+  }
+
+  .nodes-table td[data-col='url'] {
+    grid-row: 2;
+    grid-column: 4;
+    align-self: center;
+    white-space: nowrap;
+
+    &::before {
+      content: 'URL ';
+      color: var(--text-muted);
+      font-size: 0.725rem;
+    }
+  }
+
+  .nodes-table td[data-col='antibot'] {
+    grid-row: 2;
+    grid-column: 6;
+    justify-self: end;
+    align-self: center;
+  }
+}
+
+/* Tier 2 (< 500px container): compact phone card */
+@container nodes (inline-size < 500px) {
+  .nodes-table tbody tr {
+    grid-template-columns: 18px auto auto minmax(0, 1fr) auto;
+    padding: 9px 10px;
+    row-gap: 7px;
+    column-gap: 8px;
+  }
+
+  .nodes-table td[data-col='node'] {
+    grid-row: 1;
+    grid-column: 2 / 5;
+  }
+
+  .nodes-table td[data-col='proto'] {
+    grid-row: 1;
+    grid-column: 5;
+    justify-self: end;
+    align-self: start;
+  }
+
+  .nodes-table td[data-col='tcp'] {
+    grid-row: 2;
+    grid-column: 2;
+  }
+
+  .nodes-table td[data-col='url'] {
+    grid-row: 2;
+    grid-column: 3;
+  }
+
+  .nodes-table td[data-col='antibot'] {
+    grid-row: 2;
+    grid-column: 5;
+  }
+
+  .nodes-table td[data-col='actions'] {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-subtle);
+
+    .node-actions-group {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+}

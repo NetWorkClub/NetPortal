@@ -1,0 +1,118 @@
+<div class="chain-pipeline">
+  <div class="card">
+    <div class="card-head">
+      <h2 class="card-title">{{ 'routing.chainEntryTitle' | t }}</h2>
+      <span class="badge accent">{{ entryBadgeKey() | t }}</span>
+    </div>
+    <p class="setting-desc">
+      {{ (platformSvc.platform() === 'android' ? 'routing.chainEntryDescAndroid' : 'routing.chainEntryDescDesktop') | t }}
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">{{ 'routing.chainDpiTitle' | t }}</h2>
+        <p class="setting-desc">{{ 'routing.chainDpiDesc' | t }}</p>
+      </div>
+      <div class="setting-control">
+        <select
+          class="select"
+          [ngModel]="dpiLayer()"
+          (ngModelChange)="store.setChainDpiLayer($event)"
+        >
+          <option value="none">{{ 'routing.chainDpiNone' | t }}</option>
+          <option value="tls">{{ 'routing.chainDpiTls' | t }}</option>
+          <option value="byedpi">{{ 'routing.chainDpiByedpi' | t }}</option>
+          @if (platformSvc.platform() === 'desktop') {
+            <option value="zapret">{{ 'routing.chainDpiZapret' | t }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2 class="card-title">{{ 'routing.chainMainTitle' | t }}</h2>
+      @let priFailed = store.stickyChain()[0].failed;
+      <span class="badge" [class.warn]="priFailed" [class.ok]="!priFailed">
+        {{ (priFailed ? 'routing.chainFailoverActive' : 'routing.chainPrimaryOk') | t }}
+      </span>
+    </div>
+
+    <div class="chain-list">
+      @let activeHop = store.activeStickyHop();
+      @for (item of store.stickyChain(); track item.nodeId; let i = $index; let count = $count) {
+        @let isCurrent = item.nodeId === activeHop.nodeId && !item.failed;
+        <div class="chain-item" [class.is-failed]="item.failed" [class.is-active]="isCurrent">
+          <div class="chain-item-left">
+            <span class="mono" style="color: var(--text-muted); font-size: 0.78125rem;">{{ i + 1 }}.</span>
+            <strong class="truncate" style="font-size: 0.84375rem;">{{ item.label }}</strong>
+            <span class="badge" [class]="protoBadgeClass(item.proto)">{{ item.proto }}</span>
+          </div>
+          <div class="chain-item-right">
+            @if (item.failed) {
+              <span class="badge danger">{{ 'common.failed' | t }}</span>
+            } @else if (isCurrent) {
+              <span class="badge ok">{{ 'common.active' | t }}</span>
+            } @else {
+              <span class="badge">{{ 'common.standby' | t }}</span>
+            }
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon btn-sm"
+              [disabled]="i === 0"
+              (click)="store.moveStickyHop(i, -1)"
+              [attr.aria-label]="'Move up ' + item.label"
+            >
+              <np-icon name="chevron-up" [size]="13" />
+            </button>
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon btn-sm"
+              [disabled]="i === count - 1"
+              (click)="store.moveStickyHop(i, 1)"
+              [attr.aria-label]="'Move down ' + item.label"
+            >
+              <np-icon name="chevron-down" [size]="13" />
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="chain-footer">
+      <div class="stickback-row">
+        <span class="setting-desc" style="margin: 0;">{{ 'routing.chainStickBack' | t }}</span>
+        <np-toggle-switch
+          [checked]="store.stickyStickBack()"
+          (toggled)="store.stickyStickBack.set($event)"
+        />
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="store.togglePrimaryFailover()">
+        {{ (store.stickyChain()[0].failed ? 'routing.chainRecover' : 'routing.chainSimFail') | t }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">{{ 'routing.chainCascadeTitle' | t }}</h2>
+        <p class="setting-desc">{{ egressSummary() }}</p>
+      </div>
+      <div class="setting-control">
+        <select
+          class="select"
+          [ngModel]="store.chainCascade()"
+          (ngModelChange)="store.chainCascade.set($event)"
+        >
+          <option value="none">{{ 'routing.chainCascadeNone' | t }}</option>
+          <option value="warp">{{ 'routing.chainCascadeWarp' | t }}</option>
+          <option value="psiphon">{{ 'routing.chainCascadePsiphon' | t }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>

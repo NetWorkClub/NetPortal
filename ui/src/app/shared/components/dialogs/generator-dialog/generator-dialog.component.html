@@ -1,0 +1,157 @@
+<dialog
+  #dlg
+  class="dialog"
+  closedby="any"
+  aria-labelledby="dlg-gen-title"
+  (close)="onNativeClose()"
+  (pointerdown)="onPointerDown($event)"
+  (pointerup)="onPointerUp($event)"
+>
+  <div class="dialog-head">
+    <div class="dialog-head-left">
+      <button type="button" class="btn btn-ghost btn-sm" (click)="goBack()" data-testid="gen-back-btn">
+        <np-icon name="back" [size]="15" />
+        <span>{{ 'nav.back' | t }}</span>
+      </button>
+      <h2 id="dlg-gen-title">{{ 'dialogs.genTitle' | t }}</h2>
+    </div>
+    <button type="button" class="btn btn-ghost btn-icon btn-sm" (click)="closeDialog()" [attr.aria-label]="'common.cancel' | t">
+      <np-icon name="close" [size]="16" />
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    <div class="tabs-bar" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="tab-btn"
+        [attr.aria-selected]="modals.genTab() === 'warp'"
+        (click)="modals.setGenTab('warp')"
+        data-testid="gen-tab-warp"
+      >
+        {{ 'dialogs.genTabWarp' | t }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="tab-btn"
+        [attr.aria-selected]="modals.genTab() === 'psiphon'"
+        (click)="modals.setGenTab('psiphon')"
+        data-testid="gen-tab-psiphon"
+      >
+        {{ 'dialogs.genTabPsiphon' | t }}
+      </button>
+    </div>
+
+    @if (modals.genTab() === 'warp') {
+      <div class="gen-pane">
+        <div class="form-grid-2">
+          <div class="field">
+            <label class="field-label" for="gen-warp-format">{{ 'dialogs.genFormat' | t }}</label>
+            <select
+              id="gen-warp-format"
+              class="select"
+              [ngModel]="store.warpFormat()"
+              (ngModelChange)="store.warpFormat.set($event)"
+            >
+              <option value="awg31">AmneziaWG 3.1</option>
+              <option value="awg30">AmneziaWG 3.0</option>
+              <option value="awg20">AmneziaWG 2.0</option>
+              <option value="masque">MASQUE (HTTP/3 QUIC)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="gen-warp-mtu">MTU</label>
+            <input
+              id="gen-warp-mtu"
+              type="number"
+              min="1200"
+              max="1500"
+              class="input mono tabular"
+              [ngModel]="warpMtu()"
+              (ngModelChange)="warpMtu.set(+$event || 1280)"
+            />
+          </div>
+        </div>
+
+        @if (store.warpFormat() === 'awg31') {
+          <div class="setting-row" style="padding: 8px 0;">
+            <div class="setting-info">
+              <strong>I1 + RandomTrailers + DisableCookies (3.1)</strong>
+            </div>
+            <np-toggle-switch
+              [checked]="store.warpTrailers()"
+              (toggled)="store.warpTrailers.set($event)"
+            />
+          </div>
+        }
+
+        <div class="scanner-box">
+          <div class="scanner-head">
+            <strong style="font-size: 0.84375rem;">{{ 'dialogs.genScanner' | t }}</strong>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="store.scanWarpEndpoints()">
+              {{ 'dialogs.genScanBtn' | t }}
+            </button>
+          </div>
+          <div class="endpoints-stack">
+            @for (ep of store.warpEndpoints(); track ep.addr) {
+              <button
+                type="button"
+                class="endpoint-row"
+                [class.is-chosen]="ep.addr === store.warpSelectedEndpoint()"
+                (click)="store.warpSelectedEndpoint.set(ep.addr)"
+              >
+                <span class="mono" style="font-size: 0.8125rem;">{{ ep.addr }}</span>
+                <span class="ep-meta">
+                  <span class="badge">{{ ep.region }}</span>
+                  <span class="latency-val" [class]="latencyClass(ep.rtt)">{{ ep.rtt }} ms</span>
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" (click)="generateWarp()">
+          {{ 'dialogs.genWarpBtn' | t }}
+        </button>
+      </div>
+    } @else {
+      <div class="gen-pane">
+        <p class="setting-desc">{{ 'dialogs.genPsiphonDesc' | t }}</p>
+        <div class="form-grid-2">
+          <div class="field">
+            <label class="field-label" for="gen-psi-region">{{ 'dialogs.genPsiphonRegion' | t }}</label>
+            <select
+              id="gen-psi-region"
+              class="select"
+              [ngModel]="psiphonRegion()"
+              (ngModelChange)="psiphonRegion.set($event)"
+            >
+              <option value="DE">DE (Germany)</option>
+              <option value="NL">NL (Netherlands)</option>
+              <option value="US">US (United States)</option>
+              <option value="GB">GB (United Kingdom)</option>
+              <option value="JP">JP (Japan)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="gen-psi-mode">{{ 'dialogs.genPsiphonTarget' | t }}</label>
+            <select
+              id="gen-psi-mode"
+              class="select"
+              [ngModel]="psiphonMode()"
+              (ngModelChange)="psiphonMode.set($event)"
+            >
+              <option value="node">{{ 'dialogs.genPsiphonOptNode' | t }}</option>
+              <option value="fallback">{{ 'dialogs.genPsiphonOptFallback' | t }}</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="addPsiphon()">
+          {{ 'dialogs.genPsiphonBtn' | t }}
+        </button>
+      </div>
+    }
+  </div>
+</dialog>
