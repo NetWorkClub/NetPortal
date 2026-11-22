@@ -2,4 +2,7 @@
 
 package mobile
 
-import _ "golang.org/x/mobile/bind"
+import (
+	_ "golang.org/x/mobile/bind"
+	_ "golang.org/x/mobile/bind/java"
+)

@@ -158,7 +158,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
@@ -168,15 +167,27 @@ jobs:
           path: android/app/src/main/assets
       - name: Install Android NDK and gomobile
         run: |
-          sdkmanager "ndk;27.2.12479018" "platforms;android-35" "build-tools;35.0.0"
-          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$(ls -1d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n1 || command -v sdkmanager)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager not found under $SDK_ROOT" >&2
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "ndk;27.2.12479018" "platforms;android-35" "build-tools;35.0.0"
+          export ANDROID_HOME="$SDK_ROOT"
+          export ANDROID_NDK_HOME="$SDK_ROOT/ndk/27.2.12479018"
+          export PATH="$(go env GOPATH)/bin:$PATH"
           go install golang.org/x/mobile/cmd/gomobile@latest
           go install golang.org/x/mobile/cmd/gobind@latest
           gomobile init
       - name: Build netportal-core.aar
         working-directory: core
         run: |
-          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export ANDROID_HOME="$SDK_ROOT"
+          export ANDROID_NDK_HOME="$SDK_ROOT/ndk/27.2.12479018"
+          export PATH="$(go env GOPATH)/bin:$PATH"
           export GOWORK=off
           mkdir -p ../android/app/libs
           gomobile bind -target=android -androidapi 26 -o ../android/app/libs/netportal-core.aar ./mobile
