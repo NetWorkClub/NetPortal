@@ -66,4 +66,4 @@ jobs:
           cp -r dist/netportal-ui/browser/* ../desktop/frontend/dist/
       - name: Build desktop binary with webkit2_41 tag
         working-directory: desktop
-        run: go build -tags webkit2_41 -o ../netportal .
+        run: go build -tags desktop,production,webkit2_41 -o ../netportal .
