@@ -1,11 +1,19 @@
 import { NodeItem, WarpEndpoint } from '@core/models';
-import { ConnectPayload, ImportResult, ProbeOutcome, TransportContract } from './transport.interface';
+import {
+  ConnectPayload,
+  ImportResult,
+  ProbeOutcome,
+  StatusSnapshot,
+  TransportContract,
+} from './transport.interface';
 
 interface AndroidNativeBridge {
   connect(payloadJson: string): void;
   disconnect(): void;
   probeNode(nodeJson: string, kind: string): string;
   importConfig(name: string, content: string): string;
+  listNodes(): string;
+  status(): string;
 }
 
 interface AndroidWindow extends Window {
@@ -42,5 +50,13 @@ export class AndroidBridgeTransport implements TransportContract {
 
   async importConfig(name: string, content: string): Promise<ImportResult> {
     return JSON.parse(this.bridge.importConfig(name, content)) as ImportResult;
+  }
+
+  async listNodes(): Promise<NodeItem[]> {
+    return JSON.parse(this.bridge.listNodes()) as NodeItem[];
+  }
+
+  async getStatus(): Promise<StatusSnapshot> {
+    return JSON.parse(this.bridge.status()) as StatusSnapshot;
   }
 }

@@ -1,5 +1,11 @@
-import { NodeItem, WarpEndpoint } from '@core/models';
-import { ConnectPayload, ImportResult, ProbeOutcome, TransportContract } from './transport.interface';
+import { NodeItem, SourceItem, WarpEndpoint } from '@core/models';
+import {
+  ConnectPayload,
+  ImportResult,
+  ProbeOutcome,
+  StatusSnapshot,
+  TransportContract,
+} from './transport.interface';
 
 interface WailsAppBindings {
   Connect(payload: ConnectPayload): Promise<void>;
@@ -7,6 +13,9 @@ interface WailsAppBindings {
   ProbeNode(node: NodeItem, kind: 'tcp' | 'url'): Promise<ProbeOutcome>;
   ImportConfig(req: { name: string; content: string }): Promise<ImportResult>;
   ExportDiagnostics(): Promise<string>;
+  ListSources(): Promise<SourceItem[]>;
+  ListNodes(): Promise<NodeItem[]>;
+  GetStatus(): Promise<StatusSnapshot>;
 }
 
 interface WailsWindow extends Window {
@@ -50,5 +59,17 @@ export class WailsTransport implements TransportContract {
 
   async exportDiagnostics(): Promise<string> {
     return this.app.ExportDiagnostics();
+  }
+
+  async listSources(): Promise<SourceItem[]> {
+    return this.app.ListSources();
+  }
+
+  async listNodes(): Promise<NodeItem[]> {
+    return this.app.ListNodes();
+  }
+
+  async getStatus(): Promise<StatusSnapshot> {
+    return this.app.GetStatus();
   }
 }

@@ -54,7 +54,7 @@ jobs:
           go build -ldflags="-s -w" -o dist/netportal-daemon.exe ./core/cmd/netportal-daemon
           Push-Location desktop
           go build -ldflags="-s -w -H windowsgui" -o ../dist/NetPortal_Windows_Portable.exe .
-          wails build -nsis -s -o NetPortal.exe
+          wails build -nsis -s -skipbindings -o NetPortal.exe
           $installer = Get-ChildItem -Path "build/bin" -Filter "*installer*.exe" | Select-Object -First 1
           if (-not $installer) {
             Write-Error "NSIS installer was not generated in build/bin"
@@ -91,7 +91,9 @@ jobs:
           go build -ldflags="-s -w" -o pkg-deb/usr/lib/netportal/netportal-daemon ./core/cmd/netportal-daemon
           (cd desktop && go build -tags webkit2_41 -ldflags="-s -w" -o ../pkg-deb/usr/bin/netportal .)
 
-          tar -C pkg-deb/usr/bin -czf dist/NetPortal_Linux_amd64.tar.gz netportal -C ../lib/netportal netportal-daemon
+          mkdir -p stage-tar
+          cp pkg-deb/usr/bin/netportal pkg-deb/usr/lib/netportal/netportal-daemon stage-tar/
+          tar -C stage-tar -czf dist/NetPortal_Linux_amd64.tar.gz netportal netportal-daemon
           cp pkg-deb/usr/lib/netportal/netportal-daemon dist/netportal-daemon-linux-amd64
 
           printf '%s\n' \

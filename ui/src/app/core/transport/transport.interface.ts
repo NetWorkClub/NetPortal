@@ -20,6 +20,13 @@ export interface ImportResult {
   nodes: NodeItem[];
 }
 
+export interface StatusSnapshot {
+  status: 'disconnected' | 'connecting' | 'connected';
+  nodeId?: string;
+  targetName?: string;
+  lastError?: string;
+}
+
 export interface TransportContract {
   readonly transportKind: 'mock' | 'wails' | 'android' | 'http-ws';
   connect(payload: ConnectPayload): Promise<void>;
@@ -28,4 +35,7 @@ export interface TransportContract {
   scanWarpEndpoints(base: WarpEndpoint[]): Promise<WarpEndpoint[]>;
   importConfig?(name: string, content: string): Promise<ImportResult>;
   exportDiagnostics?(): Promise<string>;
+  listSources?(): Promise<SourceItem[]>;
+  listNodes?(): Promise<NodeItem[]>;
+  getStatus?(): Promise<StatusSnapshot>;
 }

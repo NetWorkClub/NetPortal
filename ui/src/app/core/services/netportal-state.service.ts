@@ -36,6 +36,22 @@ import { PlatformService } from './platform.service';
 import { RuleEngineService } from './rule-engine.service';
 import { ToastService } from './toast.service';
 
+const EMPTY_NODE: NodeItem = {
+  id: '',
+  sourceId: '',
+  iso: '--',
+  name: 'No node imported',
+  endpoint: '--',
+  proto: '--',
+  protoGroup: 'awg',
+  tcpMs: null,
+  urlMs: null,
+  antiBot: 'Clean',
+  probing: false,
+  mtu: 1280,
+  params: {},
+};
+
 @Injectable({ providedIn: 'root' })
 export class NetPortalStateService {
   private readonly transport = inject(NETPORTAL_TRANSPORT);
@@ -129,7 +145,7 @@ export class NetPortalStateService {
   );
 
   readonly activeNode = computed(
-    () => this.nodes().find((n) => n.id === this.selectedNodeId()) ?? this.nodes()[0]
+    () => this.nodes().find((n) => n.id === this.selectedNodeId()) ?? this.nodes()[0] ?? EMPTY_NODE
   );
 
   readonly activeStickyHop = computed(
@@ -245,6 +261,13 @@ export class NetPortalStateService {
   });
 
   constructor() {
+    if (this.transport.transportKind !== 'mock') {
+      this.sources.set([]);
+      this.nodes.set([]);
+      this.selectedNodeId.set('');
+      void this.hydrateFromBackend();
+    }
+
     effect(() => {
       if (this.platformSvc.platform() === 'android') {
         if (this.zapretActive()) this.zapretActive.set(false);
@@ -254,6 +277,30 @@ export class NetPortalStateService {
     });
 
     this.destroyRef.onDestroy(() => this.stopUptimeTimer());
+  }
+
+  private async hydrateFromBackend(): Promise<void> {
+    const [sourcesRes, nodesRes, statusRes] = await Promise.allSettled([
+      this.transport.listSources ? this.transport.listSources() : Promise.resolve([]),
+      this.transport.listNodes ? this.transport.listNodes() : Promise.resolve([]),
+      this.transport.getStatus ? this.transport.getStatus() : Promise.resolve(null),
+    ]);
+
+    if (sourcesRes.status === 'fulfilled' && Array.isArray(sourcesRes.value)) {
+      this.sources.set(sourcesRes.value);
+    }
+    if (nodesRes.status === 'fulfilled' && Array.isArray(nodesRes.value)) {
+      this.nodes.set(nodesRes.value);
+      if (nodesRes.value.length > 0 && !this.selectedNodeId()) {
+        this.selectedNodeId.set(nodesRes.value[0].id);
+      }
+    }
+    if (statusRes.status === 'fulfilled' && statusRes.value) {
+      this.connStatus.set(statusRes.value.status);
+      if (statusRes.value.nodeId) {
+        this.selectedNodeId.set(statusRes.value.nodeId);
+      }
+    }
   }
 
   getTargetLabel(targetKey: string): string {
@@ -302,8 +349,13 @@ export class NetPortalStateService {
 
   async toggleConnection(): Promise<void> {
     if (this.connStatus() === 'disconnected') {
-      this.connStatus.set('connecting');
       const isNovpn = this.homeMethod() === 'novpn';
+      if (!isNovpn && !this.activeNode().id) {
+        this.pushLog('warn', 'core', 'Import or generate a node first');
+        this.toast.show('Import or generate a node first');
+        return;
+      }
+      this.connStatus.set('connecting');
       if (isNovpn) {
         this.applyStandaloneMode(this.novpnMode());
         this.pushLog('info', 'dpi', `Starting standalone zero-VPN mode (${this.novpnMode()})...`);

@@ -30,7 +30,7 @@ type Engine struct {
 	running      bool
 	dev          *device.Device
 	tunDev       tun.Device
-	activeCfg    *parser.AWGConfig
+	bypassIPs    []string
 	isDesktopTUN bool
 	activeNodeID string
 	ifaceName    string
@@ -121,9 +121,12 @@ func (e *Engine) Start(ctx context.Context, runtime engine.EngineRuntime) error 
 		ifName = realName
 	}
 
+	var bypassIPs []string
 	isDesktopTUN := runtime.TunFD <= 0
 	if isDesktopTUN {
-		if err := configureDesktopTUN(ifName, parsed); err != nil {
+		bypassIPs, err = configureDesktopTUN(ifName, parsed)
+		if err != nil {
+			cleanupDesktopTUN(ifName, bypassIPs)
 			dev.Close()
 			e.lastErr = err.Error()
 			return fmt.Errorf("awg: configure tun %q: %w", ifName, err)
@@ -132,7 +135,7 @@ func (e *Engine) Start(ctx context.Context, runtime engine.EngineRuntime) error 
 
 	e.dev = dev
 	e.tunDev = tunDev
-	e.activeCfg = parsed
+	e.bypassIPs = bypassIPs
 	e.isDesktopTUN = isDesktopTUN
 	e.activeNodeID = runtime.Node.ID
 	e.ifaceName = ifName
@@ -161,7 +164,7 @@ func (e *Engine) Stop(_ context.Context) error {
 		return nil
 	}
 	if e.isDesktopTUN && e.ifaceName != "" {
-		cleanupDesktopTUN(e.ifaceName, e.activeCfg)
+		cleanupDesktopTUN(e.ifaceName, e.bypassIPs)
 	}
 	if e.dev != nil {
 		e.dev.Close()
@@ -172,7 +175,7 @@ func (e *Engine) Stop(_ context.Context) error {
 		e.tunDev = nil
 	}
 	e.running = false
-	e.activeCfg = nil
+	e.bypassIPs = nil
 	e.isDesktopTUN = false
 	e.activeNodeID = ""
 	e.ifaceName = ""

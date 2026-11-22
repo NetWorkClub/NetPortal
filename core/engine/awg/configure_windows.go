@@ -11,7 +11,30 @@ import (
 	"github.com/NetWorkClub/NetPortal/core/parser"
 )
 
-func configureDesktopTUN(ifName string, cfg *parser.AWGConfig) error {
+func configureDesktopTUN(ifName string, cfg *parser.AWGConfig) ([]string, error) {
+	var bypassIPs []string
+	gw := findDefaultGatewayV4()
+
+	if gw != "" {
+		for _, peer := range cfg.Peers {
+			if strings.TrimSpace(peer.Endpoint) == "" {
+				continue
+			}
+			resolved, err := resolveEndpointAddrPort(peer.Endpoint)
+			if err != nil {
+				continue
+			}
+			ap, err := netip.ParseAddrPort(resolved)
+			if err != nil || !ap.Addr().Is4() {
+				continue
+			}
+			ipStr := ap.Addr().String()
+			if err := exec.Command("route", "add", ipStr, "mask", "255.255.255.255", gw, "metric", "5").Run(); err == nil {
+				bypassIPs = append(bypassIPs, ipStr)
+			}
+		}
+	}
+
 	for _, raw := range cfg.Interface.Addresses {
 		p, err := netip.ParsePrefix(raw)
 		if err != nil {
@@ -21,7 +44,7 @@ func configureDesktopTUN(ifName string, cfg *parser.AWGConfig) error {
 			mask := prefixToMaskV4(p.Bits())
 			if err := exec.Command("netsh", "interface", "ip", "set", "address",
 				"name="+ifName, "static", p.Addr().String(), mask).Run(); err != nil {
-				return fmt.Errorf("netsh set IPv4 address: %w", err)
+				return bypassIPs, fmt.Errorf("netsh set IPv4 address: %w", err)
 			}
 		}
 	}
@@ -57,15 +80,33 @@ func configureDesktopTUN(ifName string, cfg *parser.AWGConfig) error {
 			}
 		}
 	}
-	return nil
+	return bypassIPs, nil
 }
 
-func cleanupDesktopTUN(ifName string, _ *parser.AWGConfig) {
-	if ifName == "" {
-		return
+func cleanupDesktopTUN(ifName string, bypassIPs []string) {
+	if ifName != "" {
+		_ = exec.Command("netsh", "interface", "ipv4", "delete", "route", "0.0.0.0/1", ifName).Run()
+		_ = exec.Command("netsh", "interface", "ipv4", "delete", "route", "128.0.0.0/1", ifName).Run()
 	}
-	_ = exec.Command("netsh", "interface", "ipv4", "delete", "route", "0.0.0.0/1", ifName).Run()
-	_ = exec.Command("netsh", "interface", "ipv4", "delete", "route", "128.0.0.0/1", ifName).Run()
+	for _, ip := range bypassIPs {
+		_ = exec.Command("route", "delete", ip).Run()
+	}
+}
+
+func findDefaultGatewayV4() string {
+	out, err := exec.Command("route", "print", "0.0.0.0").Output()
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) >= 3 && fields[0] == "0.0.0.0" && fields[1] == "0.0.0.0" {
+			if addr, err := netip.ParseAddr(fields[2]); err == nil && addr.Is4() {
+				return addr.String()
+			}
+		}
+	}
+	return ""
 }
 
 func prefixToMaskV4(bits int) string {

@@ -1,5 +1,11 @@
-import { NodeItem, WarpEndpoint } from '@core/models';
-import { ConnectPayload, ImportResult, ProbeOutcome, TransportContract } from './transport.interface';
+import { NodeItem, SourceItem, WarpEndpoint } from '@core/models';
+import {
+  ConnectPayload,
+  ImportResult,
+  ProbeOutcome,
+  StatusSnapshot,
+  TransportContract,
+} from './transport.interface';
 
 const TOKEN_STORAGE_KEY = 'netportal_web_token';
 
@@ -13,6 +19,19 @@ export class HttpWsTransport implements TransportContract {
       sessionStorage.setItem(TOKEN_STORAGE_KEY, urlToken);
     }
     this.token = token ?? urlToken ?? sessionStorage.getItem(TOKEN_STORAGE_KEY) ?? '';
+  }
+
+  private async getJson<T>(path: string): Promise<T> {
+    const res = await fetch(path, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || `HTTP ${res.status}`);
+    }
+    return (await res.json()) as T;
   }
 
   private async postJson<T>(path: string, body: unknown): Promise<T> {
@@ -59,5 +78,17 @@ export class HttpWsTransport implements TransportContract {
       throw new Error(`HTTP ${res.status}`);
     }
     return res.text();
+  }
+
+  async listSources(): Promise<SourceItem[]> {
+    return this.getJson<SourceItem[]>('/api/sources');
+  }
+
+  async listNodes(): Promise<NodeItem[]> {
+    return this.getJson<NodeItem[]>('/api/nodes');
+  }
+
+  async getStatus(): Promise<StatusSnapshot> {
+    return this.getJson<StatusSnapshot>('/api/status');
   }
 }
