@@ -47,13 +47,19 @@ jobs:
           choco install nsis -y
           Add-Content -Path $env:GITHUB_PATH -Value "C:\Program Files (x86)\NSIS"
           go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
-      - name: Build Windows binaries
+      - name: Build Windows Portable and NSIS Installer
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           go build -ldflags="-s -w" -o dist/netportal-daemon.exe ./core/cmd/netportal-daemon
           Push-Location desktop
           go build -ldflags="-s -w -H windowsgui" -o ../dist/NetPortal_Windows_Portable.exe .
+          wails build -nsis -s -o NetPortal.exe
+          if (Test-Path "build/bin/NetPortal-amd64-installer.exe") {
+            Copy-Item "build/bin/NetPortal-amd64-installer.exe" "../dist/NetPortal_Windows_Installer.exe"
+          } elseif (Test-Path "build/bin/NetPortal-installer.exe") {
+            Copy-Item "build/bin/NetPortal-installer.exe" "../dist/NetPortal_Windows_Installer.exe"
+          }
           Pop-Location
       - uses: actions/upload-artifact@v4
         with:
@@ -87,49 +93,49 @@ jobs:
           tar -C pkg-deb/usr/bin -czf dist/NetPortal_Linux_amd64.tar.gz netportal
           cp pkg-deb/usr/lib/netportal/netportal-daemon dist/netportal-daemon-linux-amd64
 
-          cat <<EOF > pkg-deb/DEBIAN/control
-          Package: netportal
-          Version: ${VERSION}
-          Section: net
-          Priority: optional
-          Architecture: amd64
-          Maintainer: NetWorkClub <dev@networkclub.local>
-          Depends: libgtk-3-0 | libgtk-3-0t64, libwebkit2gtk-4.1-0, libayatana-appindicator3-1, ca-certificates
-          Description: Universal Connectivity Aggregator and Visual Routing Constructor
-          EOF
+          printf '%s\n' \
+            "Package: netportal" \
+            "Version: ${VERSION}" \
+            "Section: net" \
+            "Priority: optional" \
+            "Architecture: amd64" \
+            "Maintainer: NetWorkClub <dev@networkclub.local>" \
+            "Depends: libgtk-3-0 | libgtk-3-0t64, libwebkit2gtk-4.1-0, libayatana-appindicator3-1, ca-certificates" \
+            "Description: Universal Connectivity Aggregator and Visual Routing Constructor" \
+            > pkg-deb/DEBIAN/control
 
-          cat <<'EOF' > pkg-deb/usr/lib/systemd/system/netportal-daemon.service
-          [Unit]
-          Description=NetPortal Privileged Network Daemon
-          After=network.target
+          printf '%s\n' \
+            "[Unit]" \
+            "Description=NetPortal Privileged Network Daemon" \
+            "After=network.target" \
+            "" \
+            "[Service]" \
+            "Type=simple" \
+            "ExecStart=/usr/lib/netportal/netportal-daemon" \
+            "Restart=on-failure" \
+            "" \
+            "[Install]" \
+            "WantedBy=multi-user.target" \
+            > pkg-deb/usr/lib/systemd/system/netportal-daemon.service
 
-          [Service]
-          Type=simple
-          ExecStart=/usr/lib/netportal/netportal-daemon
-          Restart=on-failure
+          printf '%s\n' \
+            "[Desktop Entry]" \
+            "Name=NetPortal" \
+            "Comment=Universal Connectivity Aggregator" \
+            "Exec=/usr/bin/netportal" \
+            "Type=Application" \
+            "Categories=Network;" \
+            > pkg-deb/usr/share/applications/netportal.desktop
 
-          [Install]
-          WantedBy=multi-user.target
-          EOF
-
-          cat <<'EOF' > pkg-deb/usr/share/applications/netportal.desktop
-          [Desktop Entry]
-          Name=NetPortal
-          Comment=Universal Connectivity Aggregator
-          Exec=/usr/bin/netportal
-          Type=Application
-          Categories=Network;
-          EOF
-
-          cat <<'EOF' > pkg-deb/DEBIAN/postinst
-          #!/bin/sh
-          set -e
-          chmod 755 /usr/lib/netportal/netportal-daemon /usr/bin/netportal
-          if [ -d /run/systemd/system ]; then
-            systemctl daemon-reload || true
-            systemctl enable netportal-daemon.service || true
-          fi
-          EOF
+          printf '%s\n' \
+            "#!/bin/sh" \
+            "set -e" \
+            "chmod 755 /usr/lib/netportal/netportal-daemon /usr/bin/netportal" \
+            "if [ -d /run/systemd/system ]; then" \
+            "  systemctl daemon-reload || true" \
+            "  systemctl enable netportal-daemon.service || true" \
+            "fi" \
+            > pkg-deb/DEBIAN/postinst
           chmod 755 pkg-deb/DEBIAN/postinst
           dpkg-deb --build pkg-deb dist/NetPortal_Linux_amd64.deb
       - uses: actions/upload-artifact@v4
@@ -150,6 +156,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
       - uses: actions/download-artifact@v4
         with:
           name: ui-bundle
@@ -191,32 +200,32 @@ jobs:
         run: |
           cd artifacts
           sha256sum * > SHA256SUMS.txt
-          cat <<'EOF' > ../release_body.md
-          Cross-platform release of NetPortal Core, Desktop Shell, and Android Shell.
-
-          <details open>
-          <summary><b>English</b></summary>
-
-          - **Core & Daemon**: WireGuard / AmneziaWG 2.0 / 3.0 / 3.1 parser, `amneziawg-go/v3` engine, Named Pipe / UDS privileged daemon, and `gomobile` facade.
-          - **Desktop**: Wails v2 shell with `--web` loopback fallback and WebKitGTK 4.1 compatibility.
-          - **Android**: Rootless `VpnService`, `WebViewAssetLoader`, and Quick Settings Tile.
-
-          </details>
-
-          <details>
-          <summary><b>Русский</b></summary>
-
-          - **Ядро и демон**: парсер WireGuard / AmneziaWG 2.0 / 3.0 / 3.1, движок `amneziawg-go/v3`, привилегированный демон (Named Pipe / UDS) и фасад `gomobile`.
-          - **Desktop**: оболочка Wails v2 с режимом `--web` (loopback + Bearer-токен) и поддержкой WebKitGTK 4.1.
-          - **Android**: rootless `VpnService`, `WebViewAssetLoader` и Quick Settings Tile.
-
-          </details>
-
-          ### SHA256 Checksums
-          ```text
-          EOF
-          cat SHA256SUMS.txt >> ../release_body.md
-          echo '```' >> ../release_body.md
+          {
+            echo "Cross-platform release of NetPortal Core, Desktop Shell, and Android Shell."
+            echo ""
+            echo "<details open>"
+            echo "<summary><b>English</b></summary>"
+            echo ""
+            echo "- **Core & Daemon**: WireGuard / AmneziaWG 2.0 / 3.0 / 3.1 parser, \`amneziawg-go/v3\` engine, Named Pipe / UDS privileged daemon, and \`gomobile\` facade."
+            echo "- **Desktop**: Wails v2 shell with \`--web\` loopback fallback and WebKitGTK 4.1 compatibility."
+            echo "- **Android**: Rootless \`VpnService\`, \`WebViewAssetLoader\`, and Quick Settings Tile."
+            echo ""
+            echo "</details>"
+            echo ""
+            echo "<details>"
+            echo "<summary><b>Русский</b></summary>"
+            echo ""
+            echo "- **Ядро и демон**: парсер WireGuard / AmneziaWG 2.0 / 3.0 / 3.1, движок \`amneziawg-go/v3\`, привилегированный демон (Named Pipe / UDS) и фасад \`gomobile\`."
+            echo "- **Desktop**: оболочка Wails v2 с режимом \`--web\` (loopback + Bearer-токен) и поддержкой WebKitGTK 4.1."
+            echo "- **Android**: rootless \`VpnService\`, \`WebViewAssetLoader\` и Quick Settings Tile."
+            echo ""
+            echo "</details>"
+            echo ""
+            echo "### SHA256 Checksums"
+            echo '```text'
+            cat SHA256SUMS.txt
+            echo '```'
+          } > ../release_body.md
       - uses: softprops/action-gh-release@v2
         with:
           body_path: release_body.md

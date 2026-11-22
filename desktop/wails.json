@@ -1,0 +1,20 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "NetPortal",
+  "outputfilename": "NetPortal",
+  "frontend:dir": "./frontend",
+  "frontend:install": "",
+  "frontend:build": "",
+  "wailsjsdir": "./frontend",
+  "version": "2",
+  "author": {
+    "name": "NetWorkClub"
+  },
+  "info": {
+    "companyName": "NetWorkClub",
+    "productName": "NetPortal",
+    "productVersion": "0.2.0",
+    "copyright": "MIT License",
+    "comments": "Universal Connectivity Aggregator & Visual Routing Constructor"
+  }
+}
