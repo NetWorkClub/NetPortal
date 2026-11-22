@@ -209,12 +209,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          pattern: release-*
           path: artifacts
           merge-multiple: true
       - name: Generate SHA256 checksums and release body
         run: |
           cd artifacts
-          sha256sum * > SHA256SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' -printf '%f\0' | xargs -0 sha256sum > SHA256SUMS.txt
           {
             echo "Cross-platform release of NetPortal Core, Desktop Shell, and Android Shell."
             echo ""
