@@ -60,8 +60,33 @@ func (a *App) shutdown(ctx context.Context) {
 	_ = a.Disconnect()
 }
 
+// EnsureDaemonRunning checks daemon reachability and triggers single-session elevation if needed.
+func (a *App) EnsureDaemonRunning() error {
+	if err := a.daemon.Ping(a.ctx); err == nil {
+		return nil
+	}
+	binPath, err := FindDaemonBinary()
+	if err != nil {
+		return err
+	}
+	if err := LaunchElevatedDaemon(binPath); err != nil {
+		return err
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if err := a.daemon.Ping(a.ctx); err == nil {
+			return nil
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+	return fmt.Errorf("netportal-daemon did not respond after elevation")
+}
+
 // Connect sends a connection request to the privileged netportal-daemon.
 func (a *App) Connect(payload api.ConnectPayload) error {
+	if err := a.EnsureDaemonRunning(); err != nil {
+		return err
+	}
 	var node api.NodeItem
 	if payload.NodeID != "" {
 		if found, ok := a.store.GetNode(payload.NodeID); ok {
