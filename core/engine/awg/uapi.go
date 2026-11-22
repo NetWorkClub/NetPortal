@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"net"
+	"net/netip"
 	"strconv"
 	"strings"
 
@@ -76,12 +78,24 @@ func ToUAPI(cfg *parser.AWGConfig) (string, error) {
 		}
 		writeUAPI(&b, "header_protection_key", hpkHex)
 	}
-	writeUAPIIntPtr(&b, "content_padding_addition", cfg.Interface.ContentPaddingAddition)
-	writeUAPIIntPtr(&b, "rekey_after_time", cfg.Interface.RekeyAfterTime)
-	writeUAPIIntPtr(&b, "rekey_timeout", cfg.Interface.RekeyTimeout)
-	writeUAPIIntPtr(&b, "reject_after_time", cfg.Interface.RejectAfterTime)
-	writeUAPIIntPtr(&b, "keepalive_timeout", cfg.Interface.KeepaliveTimeout)
-	writeUAPIIntPtr(&b, "max_handshake_attempts", cfg.Interface.MaxHandshakeAttempts)
+	if cfg.Interface.ContentPaddingAddition.Set {
+		writeUAPI(&b, "content_padding_addition", cfg.Interface.ContentPaddingAddition.String())
+	}
+	if cfg.Interface.RekeyAfterTime.Set {
+		writeUAPI(&b, "rekey_after_time", cfg.Interface.RekeyAfterTime.String())
+	}
+	if cfg.Interface.RekeyTimeout.Set {
+		writeUAPI(&b, "rekey_timeout", cfg.Interface.RekeyTimeout.String())
+	}
+	if cfg.Interface.RejectAfterTime.Set {
+		writeUAPI(&b, "reject_after_time", cfg.Interface.RejectAfterTime.String())
+	}
+	if cfg.Interface.KeepaliveTimeout.Set {
+		writeUAPI(&b, "keepalive_timeout", cfg.Interface.KeepaliveTimeout.String())
+	}
+	if cfg.Interface.MaxHandshakeAttempts.Set {
+		writeUAPI(&b, "max_handshake_attempts", cfg.Interface.MaxHandshakeAttempts.String())
+	}
 
 	if cfg.Interface.RandomTrailers != nil {
 		writeUAPI(&b, "random_trailers", strconv.FormatBool(*cfg.Interface.RandomTrailers))
@@ -105,7 +119,11 @@ func ToUAPI(cfg *parser.AWGConfig) (string, error) {
 			writeUAPI(&b, "preshared_key", pskHex)
 		}
 		if peer.Endpoint != "" {
-			writeUAPI(&b, "endpoint", peer.Endpoint)
+			resolved, err := resolveEndpointAddrPort(peer.Endpoint)
+			if err != nil {
+				return "", fmt.Errorf("endpoint %q: %w", peer.Endpoint, err)
+			}
+			writeUAPI(&b, "endpoint", resolved)
 		}
 		if peer.PersistentKeepalive.Set {
 			writeUAPI(&b, "persistent_keepalive_interval", peer.PersistentKeepalive.String())
@@ -140,4 +158,15 @@ func writeUAPIIntPtr(b *strings.Builder, k string, v *int) {
 	if v != nil {
 		writeUAPI(b, k, strconv.Itoa(*v))
 	}
+}
+
+func resolveEndpointAddrPort(raw string) (string, error) {
+	if ap, err := netip.ParseAddrPort(strings.TrimSpace(raw)); err == nil {
+		return ap.String(), nil
+	}
+	udpAddr, err := net.ResolveUDPAddr("udp", strings.TrimSpace(raw))
+	if err != nil {
+		return "", err
+	}
+	return udpAddr.String(), nil
 }

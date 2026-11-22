@@ -46,7 +46,7 @@ jobs:
         run: |
           choco install nsis -y
           Add-Content -Path $env:GITHUB_PATH -Value "C:\Program Files (x86)\NSIS"
-          go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
+          go install github.com/wailsapp/wails/v2/cmd/wails@v2.17.1
       - name: Build Windows Portable and NSIS Installer
         shell: pwsh
         run: |
@@ -55,11 +55,12 @@ jobs:
           Push-Location desktop
           go build -ldflags="-s -w -H windowsgui" -o ../dist/NetPortal_Windows_Portable.exe .
           wails build -nsis -s -o NetPortal.exe
-          if (Test-Path "build/bin/NetPortal-amd64-installer.exe") {
-            Copy-Item "build/bin/NetPortal-amd64-installer.exe" "../dist/NetPortal_Windows_Installer.exe"
-          } elseif (Test-Path "build/bin/NetPortal-installer.exe") {
-            Copy-Item "build/bin/NetPortal-installer.exe" "../dist/NetPortal_Windows_Installer.exe"
+          $installer = Get-ChildItem -Path "build/bin" -Filter "*installer*.exe" | Select-Object -First 1
+          if (-not $installer) {
+            Write-Error "NSIS installer was not generated in build/bin"
+            exit 1
           }
+          Copy-Item -Path $installer.FullName -Destination "../dist/NetPortal_Windows_Installer.exe" -Force
           Pop-Location
       - uses: actions/upload-artifact@v4
         with:
@@ -90,7 +91,7 @@ jobs:
           go build -ldflags="-s -w" -o pkg-deb/usr/lib/netportal/netportal-daemon ./core/cmd/netportal-daemon
           (cd desktop && go build -tags webkit2_41 -ldflags="-s -w" -o ../pkg-deb/usr/bin/netportal .)
 
-          tar -C pkg-deb/usr/bin -czf dist/NetPortal_Linux_amd64.tar.gz netportal
+          tar -C pkg-deb/usr/bin -czf dist/NetPortal_Linux_amd64.tar.gz netportal -C ../lib/netportal netportal-daemon
           cp pkg-deb/usr/lib/netportal/netportal-daemon dist/netportal-daemon-linux-amd64
 
           printf '%s\n' \
@@ -174,6 +175,7 @@ jobs:
         working-directory: core
         run: |
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+          export GOWORK=off
           mkdir -p ../android/app/libs
           gomobile bind -target=android -androidapi 26 -o ../android/app/libs/netportal-core.aar ./mobile
       - name: Build Android APK

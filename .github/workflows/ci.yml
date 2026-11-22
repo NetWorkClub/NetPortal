@@ -8,21 +8,25 @@ on:
 
 jobs:
   go-test-and-vet:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26'
+      - name: Install GTK and WebKit2GTK 4.1 dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev
       - name: Run Go tests
-        run: go test -race ./core/... ./desktop/...
+        run: go test -race -tags webkit2_41 ./core/... ./desktop/...
       - name: Run Go vet
-        run: go vet ./core/... ./desktop/...
+        run: go vet -tags webkit2_41 ./core/... ./desktop/...
       - name: Build daemon
         run: go build ./core/cmd/netportal-daemon
 
   ui-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

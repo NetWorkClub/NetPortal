@@ -142,6 +142,10 @@ func TestValidationErrors(t *testing.T) {
 			name: "inverted H1 range",
 			conf: "[Interface]\nPrivateKey = " + testPrivKey + "\nAddress = 10.0.0.1/32\nH1 = 500-100\n[Peer]\nPublicKey = " + testPubKey,
 		},
+		{
+			name: "HeaderProtectionKey without S3",
+			conf: "[Interface]\nPrivateKey = " + testPrivKey + "\nAddress = 10.0.0.1/32\nHeaderProtectionKey = " + testHPK + "\n[Peer]\nPublicKey = " + testPubKey,
+		},
 	}
 
 	for _, tc := range cases {

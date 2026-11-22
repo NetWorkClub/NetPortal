@@ -34,7 +34,12 @@ func ListenIPC(endpoint string) (net.Listener, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := os.Chmod(endpoint, 0o600); err != nil {
+	perm := os.FileMode(0o600)
+	if os.Geteuid() == 0 {
+		// Allow unprivileged desktop UI sessions to connect to the systemd root daemon.
+		perm = 0o666
+	}
+	if err := os.Chmod(endpoint, perm); err != nil {
 		_ = ln.Close()
 		return nil, err
 	}

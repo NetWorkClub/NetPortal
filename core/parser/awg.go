@@ -112,12 +112,12 @@ type AWGInterface struct {
 
 	// AWG 3.0 header protection & handshake timers
 	HeaderProtectionKey    string
-	ContentPaddingAddition *int
-	RekeyAfterTime         *int
-	RekeyTimeout           *int
-	RejectAfterTime        *int
-	KeepaliveTimeout       *int
-	MaxHandshakeAttempts   *int
+	ContentPaddingAddition UintRange
+	RekeyAfterTime         UintRange
+	RekeyTimeout           UintRange
+	RejectAfterTime        UintRange
+	KeepaliveTimeout       UintRange
+	MaxHandshakeAttempts   UintRange
 
 	// AWG 3.1 trailer & cookie controls
 	RandomTrailers *bool
@@ -326,41 +326,41 @@ func applyInterfaceKV(iface *AWGInterface, key, val string) error {
 	case "headerprotectionkey":
 		iface.HeaderProtectionKey = val
 	case "contentpaddingaddition":
-		p, err := parseIntPtr(val)
+		r, err := ParseUintRange(val)
 		if err != nil {
 			return err
 		}
-		iface.ContentPaddingAddition = p
+		iface.ContentPaddingAddition = r
 	case "rekeyaftertime":
-		p, err := parseIntPtr(val)
+		r, err := ParseUintRange(val)
 		if err != nil {
 			return err
 		}
-		iface.RekeyAfterTime = p
+		iface.RekeyAfterTime = r
 	case "rekeytimeout":
-		p, err := parseIntPtr(val)
+		r, err := ParseUintRange(val)
 		if err != nil {
 			return err
 		}
-		iface.RekeyTimeout = p
+		iface.RekeyTimeout = r
 	case "rejectaftertime":
-		p, err := parseIntPtr(val)
+		r, err := ParseUintRange(val)
 		if err != nil {
 			return err
 		}
-		iface.RejectAfterTime = p
+		iface.RejectAfterTime = r
 	case "keepalivetimeout":
-		p, err := parseIntPtr(val)
+		r, err := ParseUintRange(val)
 		if err != nil {
 			return err
 		}
-		iface.KeepaliveTimeout = p
+		iface.KeepaliveTimeout = r
 	case "maxhandshakeattempts":
-		p, err := parseIntPtr(val)
+		r, err := ParseUintRange(val)
 		if err != nil {
 			return err
 		}
-		iface.MaxHandshakeAttempts = p
+		iface.MaxHandshakeAttempts = r
 	case "randomtrailers":
 		b, err := parseFlexBool(val)
 		if err != nil {
@@ -409,8 +409,13 @@ func (c *AWGConfig) Validate() error {
 	if err := validateWGKey("HeaderProtectionKey", c.Interface.HeaderProtectionKey, false); err != nil {
 		return err
 	}
-	if c.Interface.HeaderProtectionKey != "" && c.Interface.S3 != nil && *c.Interface.S3 < 12 {
-		return fmt.Errorf("S3 must be at least 12 to use HeaderProtectionKey, got %d", *c.Interface.S3)
+	if c.Interface.HeaderProtectionKey != "" {
+		if c.Interface.S3 == nil {
+			return errors.New("S3 must be set and at least 12 to use HeaderProtectionKey")
+		}
+		if *c.Interface.S3 < 12 {
+			return fmt.Errorf("S3 must be at least 12 to use HeaderProtectionKey, got %d", *c.Interface.S3)
+		}
 	}
 	if len(c.Interface.Addresses) == 0 {
 		return errors.New("interface Address is required")
@@ -476,12 +481,12 @@ func (c *AWGConfig) DetectVersion() AWGVersion {
 		return VersionAWG31
 	}
 	if c.Interface.HeaderProtectionKey != "" ||
-		c.Interface.ContentPaddingAddition != nil ||
-		c.Interface.RekeyAfterTime != nil ||
-		c.Interface.RekeyTimeout != nil ||
-		c.Interface.RejectAfterTime != nil ||
-		c.Interface.KeepaliveTimeout != nil ||
-		c.Interface.MaxHandshakeAttempts != nil ||
+		c.Interface.ContentPaddingAddition.Set ||
+		c.Interface.RekeyAfterTime.Set ||
+		c.Interface.RekeyTimeout.Set ||
+		c.Interface.RejectAfterTime.Set ||
+		c.Interface.KeepaliveTimeout.Set ||
+		c.Interface.MaxHandshakeAttempts.Set ||
 		c.Interface.S3 != nil ||
 		c.Interface.S4 != nil ||
 		c.Interface.H1.IsRange() ||
@@ -586,12 +591,24 @@ func (c *AWGConfig) Serialize() string {
 	if c.Interface.HeaderProtectionKey != "" {
 		writeKV(&b, "HeaderProtectionKey", c.Interface.HeaderProtectionKey)
 	}
-	writeIntPtr(&b, "ContentPaddingAddition", c.Interface.ContentPaddingAddition)
-	writeIntPtr(&b, "RekeyAfterTime", c.Interface.RekeyAfterTime)
-	writeIntPtr(&b, "RekeyTimeout", c.Interface.RekeyTimeout)
-	writeIntPtr(&b, "RejectAfterTime", c.Interface.RejectAfterTime)
-	writeIntPtr(&b, "KeepaliveTimeout", c.Interface.KeepaliveTimeout)
-	writeIntPtr(&b, "MaxHandshakeAttempts", c.Interface.MaxHandshakeAttempts)
+	if c.Interface.ContentPaddingAddition.Set {
+		writeKV(&b, "ContentPaddingAddition", c.Interface.ContentPaddingAddition.String())
+	}
+	if c.Interface.RekeyAfterTime.Set {
+		writeKV(&b, "RekeyAfterTime", c.Interface.RekeyAfterTime.String())
+	}
+	if c.Interface.RekeyTimeout.Set {
+		writeKV(&b, "RekeyTimeout", c.Interface.RekeyTimeout.String())
+	}
+	if c.Interface.RejectAfterTime.Set {
+		writeKV(&b, "RejectAfterTime", c.Interface.RejectAfterTime.String())
+	}
+	if c.Interface.KeepaliveTimeout.Set {
+		writeKV(&b, "KeepaliveTimeout", c.Interface.KeepaliveTimeout.String())
+	}
+	if c.Interface.MaxHandshakeAttempts.Set {
+		writeKV(&b, "MaxHandshakeAttempts", c.Interface.MaxHandshakeAttempts.String())
+	}
 	if c.Interface.RandomTrailers != nil {
 		writeKV(&b, "RandomTrailers", formatOnOff(*c.Interface.RandomTrailers))
 	}

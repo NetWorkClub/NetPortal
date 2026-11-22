@@ -1,7 +1,6 @@
 package club.network.netportal
 
 import android.content.Intent
-import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import mobile.Mobile
@@ -16,23 +15,19 @@ class NetPortalTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
-        val active = isTunnelActive()
-        if (active) {
+        if (isTunnelActive()) {
             val stopIntent = Intent(this, NetPortalVpnService::class.java).apply {
                 action = NetPortalVpnService.ACTION_STOP
             }
             startService(stopIntent)
-        } else {
-            val startIntent = Intent(this, NetPortalVpnService::class.java).apply {
-                action = NetPortalVpnService.ACTION_START
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(startIntent)
-            } else {
-                startService(startIntent)
-            }
+            refreshTileState()
+            return
         }
-        refreshTileState()
+
+        val openIntent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivityAndCollapse(openIntent)
     }
 
     private fun isTunnelActive(): Boolean {

@@ -244,8 +244,8 @@ PersistentKeepalive = 25
 	return cfg.ToNodeItem("builtin-warp", "warp-"+string(preset)+"-"+shortTag(acc.ID), "WARP "+string(cfg.DetectVersion()), conf), nil
 }
 
-// ScanEndpoints measures UDP/TCP reachability and RTT for candidate WARP endpoints
-// and returns them sorted by lowest latency.
+// ScanEndpoints measures real TCP handshake RTT to port 443 on candidate WARP endpoint hosts
+// and returns them sorted by lowest latency (unreachable hosts receive RTT=9999 and Loss=100%).
 func ScanEndpoints(ctx context.Context, candidates []api.WarpEndpoint, timeout time.Duration) []api.WarpEndpoint {
 	if len(candidates) == 0 {
 		candidates = DefaultEndpoints()
@@ -260,17 +260,20 @@ func ScanEndpoints(ctx context.Context, candidates []api.WarpEndpoint, timeout t
 		wg.Add(1)
 		go func(idx int, item api.WarpEndpoint) {
 			defer wg.Done()
+			host, _, err := net.SplitHostPort(item.Addr)
+			if err != nil || host == "" {
+				host = item.Addr
+			}
+			probeTarget := net.JoinHostPort(host, "443")
 			start := time.Now()
 			d := net.Dialer{Timeout: timeout}
-			conn, err := d.DialContext(ctx, "udp", item.Addr)
+			conn, err := d.DialContext(ctx, "tcp", probeTarget)
 			if err != nil {
 				item.RTT = 9999
 				item.Loss = "100%"
 				out[idx] = item
 				return
 			}
-			// Send a minimal 1-byte probe packet to trigger route/socket timing.
-			_, _ = conn.Write([]byte{0x01})
 			_ = conn.Close()
 			ms := int(time.Since(start).Milliseconds())
 			if ms < 1 {

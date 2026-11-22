@@ -3,6 +3,7 @@ package warp
 import (
 	"context"
 	"encoding/json"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -58,10 +59,25 @@ func TestWarpRegisterBuildAndScan(t *testing.T) {
 		t.Fatalf("expected MASQUE protoGroup, got %s", masqueNode.ProtoGroup)
 	}
 
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen failed: %v", err)
+	}
+	defer ln.Close()
+	go func() {
+		for {
+			c, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			_ = c.Close()
+		}
+	}()
+
 	scanned := ScanEndpoints(context.Background(), []api.WarpEndpoint{
 		{Addr: "127.0.0.1:2408", Region: "Local"},
-	}, 500*time.Millisecond)
-	if len(scanned) != 1 || scanned[0].RTT < 1 {
+	}, 200*time.Millisecond)
+	if len(scanned) != 1 || scanned[0].RTT <= 0 {
 		t.Fatalf("unexpected scan result: %+v", scanned)
 	}
 }

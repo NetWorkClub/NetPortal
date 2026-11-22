@@ -192,5 +192,17 @@ func DetectImport(raw string) (api.ImportDetectionResult, error) {
 		}, nil
 	}
 
+	if nodes, err := ParseSubscription("detect", trimmed); err == nil && len(nodes) > 0 {
+		label := nodes[0].Proto
+		if len(nodes) > 1 {
+			label = fmt.Sprintf("%s (%d nodes)", nodes[0].Proto, len(nodes))
+		}
+		return api.ImportDetectionResult{
+			Proto:      nodes[0].Proto,
+			ProtoGroup: nodes[0].ProtoGroup,
+			Label:      label,
+		}, nil
+	}
+
 	return api.ImportDetectionResult{}, errors.New("unrecognized configuration format")
 }

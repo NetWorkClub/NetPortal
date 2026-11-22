@@ -30,6 +30,8 @@ type Engine struct {
 	running      bool
 	dev          *device.Device
 	tunDev       tun.Device
+	activeCfg    *parser.AWGConfig
+	isDesktopTUN bool
 	activeNodeID string
 	ifaceName    string
 	lastErr      string
@@ -98,7 +100,8 @@ func (e *Engine) Start(ctx context.Context, runtime engine.EngineRuntime) error 
 	}
 
 	logger := newDeviceLogger(runtime.OnLog)
-	dev := device.NewDevice(tunDev, conn.NewDefaultBind(), logger)
+	bind := conn.NewDefaultBind()
+	dev := device.NewDevice(tunDev, bind, logger)
 	if err := dev.IpcSet(uapiConf); err != nil {
 		dev.Close()
 		e.lastErr = err.Error()
@@ -110,12 +113,27 @@ func (e *Engine) Start(ctx context.Context, runtime engine.EngineRuntime) error 
 		return fmt.Errorf("awg: bring device up: %w", err)
 	}
 
+	if runtime.ProtectFD != nil {
+		protectBindSockets(bind, runtime.ProtectFD)
+	}
+
 	if realName, nameErr := tunDev.Name(); nameErr == nil && realName != "" {
 		ifName = realName
 	}
 
+	isDesktopTUN := runtime.TunFD <= 0
+	if isDesktopTUN {
+		if err := configureDesktopTUN(ifName, parsed); err != nil {
+			dev.Close()
+			e.lastErr = err.Error()
+			return fmt.Errorf("awg: configure tun %q: %w", ifName, err)
+		}
+	}
+
 	e.dev = dev
 	e.tunDev = tunDev
+	e.activeCfg = parsed
+	e.isDesktopTUN = isDesktopTUN
 	e.activeNodeID = runtime.Node.ID
 	e.ifaceName = ifName
 	e.lastErr = ""
@@ -123,11 +141,27 @@ func (e *Engine) Start(ctx context.Context, runtime engine.EngineRuntime) error 
 	return nil
 }
 
+func protectBindSockets(bind conn.Bind, protectFD func(int) bool) {
+	peek, ok := bind.(conn.PeekLookAtSocketFd)
+	if !ok {
+		return
+	}
+	if fd4, err := peek.PeekLookAtSocketFd4(); err == nil && fd4 >= 0 {
+		_ = protectFD(fd4)
+	}
+	if fd6, err := peek.PeekLookAtSocketFd6(); err == nil && fd6 >= 0 {
+		_ = protectFD(fd6)
+	}
+}
+
 func (e *Engine) Stop(_ context.Context) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if !e.running {
 		return nil
+	}
+	if e.isDesktopTUN && e.ifaceName != "" {
+		cleanupDesktopTUN(e.ifaceName, e.activeCfg)
 	}
 	if e.dev != nil {
 		e.dev.Close()
@@ -138,6 +172,8 @@ func (e *Engine) Stop(_ context.Context) error {
 		e.tunDev = nil
 	}
 	e.running = false
+	e.activeCfg = nil
+	e.isDesktopTUN = false
 	e.activeNodeID = ""
 	e.ifaceName = ""
 	return nil

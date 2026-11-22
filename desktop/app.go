@@ -87,6 +87,27 @@ func (a *App) Connect(payload api.ConnectPayload) error {
 	if err := a.EnsureDaemonRunning(); err != nil {
 		return err
 	}
+
+	if payload.Standalone {
+		engineID := resolveStandaloneEngineID(payload.TargetName)
+		req := daemon.ConnectRequest{
+			Payload: payload,
+			Node: api.NodeItem{
+				ID:   engineID,
+				Name: payload.TargetName,
+			},
+			EngineID: engineID,
+		}
+		snap, err := a.daemon.Connect(a.ctx, req)
+		if err != nil {
+			return err
+		}
+		a.mu.Lock()
+		a.status = snap
+		a.mu.Unlock()
+		return nil
+	}
+
 	var node api.NodeItem
 	if payload.NodeID != "" {
 		if found, ok := a.store.GetNode(payload.NodeID); ok {
@@ -108,7 +129,7 @@ func (a *App) Connect(payload api.ConnectPayload) error {
 	req := daemon.ConnectRequest{
 		Payload:  payload,
 		Node:     node,
-		EngineID: string(node.ProtoGroup),
+		EngineID: resolveNodeEngineID(node),
 	}
 	snap, err := a.daemon.Connect(a.ctx, req)
 	if err != nil {
@@ -118,6 +139,30 @@ func (a *App) Connect(payload api.ConnectPayload) error {
 	a.status = snap
 	a.mu.Unlock()
 	return nil
+}
+
+func resolveStandaloneEngineID(targetName string) string {
+	switch strings.ToLower(strings.TrimSpace(targetName)) {
+	case "zapret":
+		return "zapret"
+	case "smartdns":
+		return "smartdns"
+	default:
+		return "byedpi"
+	}
+}
+
+func resolveNodeEngineID(node api.NodeItem) string {
+	switch node.ProtoGroup {
+	case api.ProtoGroupAWG, api.ProtoGroupWARP:
+		return "awg"
+	case api.ProtoGroupProxy, api.ProtoGroupMASQUE:
+		return "proxy"
+	case api.ProtoGroupPsiphon:
+		return "psiphon"
+	default:
+		return string(node.ProtoGroup)
+	}
 }
 
 // Disconnect stops the active tunnel/bypass via netportal-daemon.
