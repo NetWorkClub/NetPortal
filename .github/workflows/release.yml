@@ -1,0 +1,223 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-ui:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+      - name: Build Angular UI
+        working-directory: ui
+        run: |
+          npm ci
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-bundle
+          path: ui/dist/netportal-ui/browser/
+
+  build-windows:
+    needs: build-ui
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - uses: actions/download-artifact@v4
+        with:
+          name: ui-bundle
+          path: desktop/frontend/dist
+      - name: Install NSIS and Wails CLI
+        shell: pwsh
+        run: |
+          choco install nsis -y
+          Add-Content -Path $env:GITHUB_PATH -Value "C:\Program Files (x86)\NSIS"
+          go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
+      - name: Build Windows binaries
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          go build -ldflags="-s -w" -o dist/netportal-daemon.exe ./core/cmd/netportal-daemon
+          Push-Location desktop
+          go build -ldflags="-s -w -H windowsgui" -o ../dist/NetPortal_Windows_Portable.exe .
+          Pop-Location
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: dist/
+
+  build-linux:
+    needs: build-ui
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - uses: actions/download-artifact@v4
+        with:
+          name: ui-bundle
+          path: desktop/frontend/dist
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev dpkg-dev
+      - name: Build Linux binaries and packages
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then VERSION="0.2.0-snapshot"; fi
+          mkdir -p dist pkg-deb/DEBIAN pkg-deb/usr/bin pkg-deb/usr/lib/netportal pkg-deb/usr/lib/systemd/system pkg-deb/usr/share/applications
+          go build -ldflags="-s -w" -o pkg-deb/usr/lib/netportal/netportal-daemon ./core/cmd/netportal-daemon
+          (cd desktop && go build -tags webkit2_41 -ldflags="-s -w" -o ../pkg-deb/usr/bin/netportal .)
+
+          tar -C pkg-deb/usr/bin -czf dist/NetPortal_Linux_amd64.tar.gz netportal
+          cp pkg-deb/usr/lib/netportal/netportal-daemon dist/netportal-daemon-linux-amd64
+
+          cat <<EOF > pkg-deb/DEBIAN/control
+          Package: netportal
+          Version: ${VERSION}
+          Section: net
+          Priority: optional
+          Architecture: amd64
+          Maintainer: NetWorkClub <dev@networkclub.local>
+          Depends: libgtk-3-0 | libgtk-3-0t64, libwebkit2gtk-4.1-0, libayatana-appindicator3-1, ca-certificates
+          Description: Universal Connectivity Aggregator and Visual Routing Constructor
+          EOF
+
+          cat <<'EOF' > pkg-deb/usr/lib/systemd/system/netportal-daemon.service
+          [Unit]
+          Description=NetPortal Privileged Network Daemon
+          After=network.target
+
+          [Service]
+          Type=simple
+          ExecStart=/usr/lib/netportal/netportal-daemon
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+          cat <<'EOF' > pkg-deb/usr/share/applications/netportal.desktop
+          [Desktop Entry]
+          Name=NetPortal
+          Comment=Universal Connectivity Aggregator
+          Exec=/usr/bin/netportal
+          Type=Application
+          Categories=Network;
+          EOF
+
+          cat <<'EOF' > pkg-deb/DEBIAN/postinst
+          #!/bin/sh
+          set -e
+          chmod 755 /usr/lib/netportal/netportal-daemon /usr/bin/netportal
+          if [ -d /run/systemd/system ]; then
+            systemctl daemon-reload || true
+            systemctl enable netportal-daemon.service || true
+          fi
+          EOF
+          chmod 755 pkg-deb/DEBIAN/postinst
+          dpkg-deb --build pkg-deb dist/NetPortal_Linux_amd64.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: dist/
+
+  build-android:
+    needs: build-ui
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: ui-bundle
+          path: android/app/src/main/assets
+      - name: Install Android NDK and gomobile
+        run: |
+          sdkmanager "ndk;27.2.12479018" "platforms;android-35" "build-tools;35.0.0"
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          go install golang.org/x/mobile/cmd/gobind@latest
+          gomobile init
+      - name: Build netportal-core.aar
+        working-directory: core
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+          mkdir -p ../android/app/libs
+          gomobile bind -target=android -androidapi 26 -o ../android/app/libs/netportal-core.aar ./mobile
+      - name: Build Android APK
+        working-directory: android
+        run: |
+          gradle assembleDebug
+          mkdir -p ../dist
+          cp app/build/outputs/apk/debug/app-debug.apk ../dist/NetPortal_Android_universal.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: dist/
+
+  publish-release:
+    if: github.ref_type == 'tag'
+    needs: [build-windows, build-linux, build-android]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Generate SHA256 checksums and release body
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS.txt
+          cat <<'EOF' > ../release_body.md
+          Cross-platform release of NetPortal Core, Desktop Shell, and Android Shell.
+
+          <details open>
+          <summary><b>English</b></summary>
+
+          - **Core & Daemon**: WireGuard / AmneziaWG 2.0 / 3.0 / 3.1 parser, `amneziawg-go/v3` engine, Named Pipe / UDS privileged daemon, and `gomobile` facade.
+          - **Desktop**: Wails v2 shell with `--web` loopback fallback and WebKitGTK 4.1 compatibility.
+          - **Android**: Rootless `VpnService`, `WebViewAssetLoader`, and Quick Settings Tile.
+
+          </details>
+
+          <details>
+          <summary><b>Русский</b></summary>
+
+          - **Ядро и демон**: парсер WireGuard / AmneziaWG 2.0 / 3.0 / 3.1, движок `amneziawg-go/v3`, привилегированный демон (Named Pipe / UDS) и фасад `gomobile`.
+          - **Desktop**: оболочка Wails v2 с режимом `--web` (loopback + Bearer-токен) и поддержкой WebKitGTK 4.1.
+          - **Android**: rootless `VpnService`, `WebViewAssetLoader` и Quick Settings Tile.
+
+          </details>
+
+          ### SHA256 Checksums
+          ```text
+          EOF
+          cat SHA256SUMS.txt >> ../release_body.md
+          echo '```' >> ../release_body.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_body.md
+          files: artifacts/*

@@ -1,8 +1,9 @@
-import { NodeItem, WarpEndpoint } from '@core/models';
+import { NodeItem, SourceItem, WarpEndpoint } from '@core/models';
 
 export interface ConnectPayload {
   mode: string;
   targetName: string;
+  nodeId?: string;
   standalone: boolean;
 }
 
@@ -11,6 +12,12 @@ export interface ProbeOutcome {
   tcpMs: number;
   urlMs: number | null;
   antiBot: 'Clean' | 'Challenge' | 'Error';
+  error?: string;
+}
+
+export interface ImportResult {
+  source: SourceItem;
+  nodes: NodeItem[];
 }
 
 export interface TransportContract {
@@ -19,4 +26,6 @@ export interface TransportContract {
   disconnect(): Promise<void>;
   probeNode(node: NodeItem, kind: 'tcp' | 'url'): Promise<ProbeOutcome>;
   scanWarpEndpoints(base: WarpEndpoint[]): Promise<WarpEndpoint[]>;
+  importConfig?(name: string, content: string): Promise<ImportResult>;
+  exportDiagnostics?(): Promise<string>;
 }
