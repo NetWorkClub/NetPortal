@@ -311,11 +311,20 @@ export class NetPortalStateService {
         this.pushLog('info', 'core', `Connecting via ${this.serviceMode()} (${this.activeNode().name})...`);
       }
 
-      await this.transport.connect({
-        mode: isNovpn ? 'standalone' : this.serviceMode(),
-        targetName: isNovpn ? this.novpnMode() : this.activeNode().name,
-        standalone: isNovpn,
-      });
+      try {
+        await this.transport.connect({
+          mode: isNovpn ? 'standalone' : this.serviceMode(),
+          targetName: isNovpn ? this.novpnMode() : this.activeNode().name,
+          nodeId: isNovpn ? undefined : this.activeNode().id,
+          standalone: isNovpn,
+        });
+      } catch (err) {
+        this.connStatus.set('disconnected');
+        const msg = err instanceof Error ? err.message : String(err);
+        this.pushLog('error', 'core', `Connection failed: ${msg}`);
+        this.toast.show(msg);
+        return;
+      }
 
       if (this.connStatus() !== 'connecting') return;
       this.connStatus.set('connected');
@@ -409,8 +418,27 @@ export class NetPortalStateService {
     this.toast.show(`${kind.toUpperCase()} probe (${targets.length})`);
   }
 
-  importRawNode(nameInput: string, raw: string, fileName = ''): void {
+  async importRawNode(nameInput: string, raw: string, fileName = ''): Promise<void> {
     const name = nameInput.trim() || 'Imported Node';
+    if (this.transport.importConfig) {
+      try {
+        const res = await this.transport.importConfig(name, raw);
+        this.sources.update((list) => [res.source, ...list]);
+        this.nodes.update((list) => [...res.nodes, ...list]);
+        if (res.nodes.length > 0) {
+          this.selectedNodeId.set(res.nodes[0].id);
+        }
+        this.pushLog('info', 'core', `Imported ${res.nodes.length} node(s) via ${this.transport.transportKind} backend`);
+        this.toast.show(res.source.name);
+        return;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.pushLog('error', 'core', `Import failed: ${msg}`);
+        this.toast.show(msg);
+        return;
+      }
+    }
+
     const det = detectImportFormat(raw, fileName);
     const id = `custom-${Date.now()}`;
     const epMatch = raw.match(/Endpoint\s*=\s*([^\s\n]+)/i) || raw.match(/@([^\s/?#]+)/);
@@ -433,6 +461,23 @@ export class NetPortalStateService {
     this.selectedNodeId.set(id);
     this.pushLog('info', 'core', `Imported ${det.proto} node "${name}" into local inventory`);
     this.toast.show(name);
+  }
+
+  async exportDiagnostics(): Promise<string> {
+    if (this.transport.exportDiagnostics) {
+      return this.transport.exportDiagnostics();
+    }
+    return JSON.stringify(
+      {
+        transport: this.transport.transportKind,
+        status: this.connStatus(),
+        nodeCount: this.nodes().length,
+        conflicts: this.conflicts(),
+        logs: this.logs().slice(0, 50),
+      },
+      null,
+      2,
+    );
   }
 
   async scanWarpEndpoints(): Promise<void> {
